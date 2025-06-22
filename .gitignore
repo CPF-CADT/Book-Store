@@ -1,3 +1,3 @@
-node_modeles/
+node_modules/
 .env
 dist/
