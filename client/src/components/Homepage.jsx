@@ -1,5 +1,4 @@
-import { HomeHeader, Footer } from "./header_footer";
-import React from "react";
+import { HomeHeader, Footer } from "./HeaderFooter";
 import { FaSearch, FaBars } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
@@ -23,6 +22,12 @@ const books = [
     img: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=400&q=80",
   },
   {
+    title: "YOUR SIMPLE BOOK COVER",
+    author: "Arthur Doyle",
+    price: 45,
+    img: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
+  },
+    {
     title: "YOUR SIMPLE BOOK COVER",
     author: "Arthur Doyle",
     price: 45,
@@ -126,8 +131,6 @@ export function Homepage() {
                     <button className=" cursor-pointer bg-red-500 text-white px-6 py-2  font-semibold shadow  hover:bg-red-600 transition">
                       ADD TO CART
                     </button>
-
-
                   </div>
                 </Link>
                 </div>

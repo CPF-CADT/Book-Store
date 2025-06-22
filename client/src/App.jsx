@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Login } from "./components/pages/account/login.jsx";
-import { Register } from "./components/pages/account/register.jsx";
+import { Login } from "./pages/login.jsx";
+import { Register } from "./pages/register.jsx";
 import { Homepage } from "./components/Homepage.jsx";
-import { Account_detail } from "./components/pages/account/account_detail.jsx";
+import { Account_detail } from "./pages/account_detail.jsx";
 
 function App() {
   return (

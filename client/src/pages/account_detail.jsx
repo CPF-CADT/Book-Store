@@ -1,10 +1,10 @@
-import { HomeHeader,Footer } from "../../header_footer";
+import { HomeHeader,Footer } from "../components/HeaderFooter";
 export function Account_detail(){
     return (
         <>
-        <HomeHeader />
-        <p>Hi nigga</p>
-        <Footer />
+            <HomeHeader />
+                <p>Hi nigga</p>
+            <Footer />
         </>
     )
 }
