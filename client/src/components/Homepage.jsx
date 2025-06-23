@@ -1,146 +1,214 @@
-import { HomeHeader, Footer } from "./HeaderFooter";
-import { FaSearch, FaBars } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { useEffect, useState} from "react";
+import { HomeHeader, Footer} from "./HeaderFooter";
+import { data } from "react-router-dom";
 
-const books = [
-  {
-    title: "Simple Way Of Piece Life.",
-    author: "Armor Ramsey",
-    price: 40,
-    img: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    title: "Great Travel At Desert",
-    author: "Sanchit Howdy",
-    price: 38,
-    img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    title: "YOUR SIMPLE BOOK COVER",
-    author: "Arthur Doyle",
-    price: 45,
-    img: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    title: "YOUR SIMPLE BOOK COVER",
-    author: "Arthur Doyle",
-    price: 45,
-    img: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-  },
-    {
-    title: "YOUR SIMPLE BOOK COVER",
-    author: "Arthur Doyle",
-    price: 45,
-    img: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-  },
-];
+export function Homepage(){
+  const [books, setBooks] = useState([]);
+  const [filtersBook, setFilterBook] = useState([]);
+  const [filters, setFilters] = useState({
+    priceRange: {min: '', max: ''},
+    productType: [],
+    availability: [],
+    brand: [],
+    color: [],
+    materail: []
+  });
+  const [sortBy, setSortBy] = useState('alphabetical-asc');
+  const [itemPerPage, setItemPerPage] = useState(12);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterOptions, setFilterOptions] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-export function Homepage() {
-  return (
+  //fetch initail data
+  useEffect(() => {
+    const loadData = async () => {
+      try{
+        setLoading(true);
+        const [bookData, filtersData] = await Promise.all([
+          fetch(bookData),
+          fetch(filtersData)
+        ])
+        setBooks(bookData);
+        setFilterBook(bookData);
+        setFilterOptions(filtersData);
+      }catch(err){
+        setError('Failed to load data');
+        console.error('Error loading data: ', err)
+      }finally{
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  //apply filter and sorting 
+  useEffect(() => {
+    let result = [...books];
+
+    if ( filters.priceRange.min || filters.priceRange){
+      result = result.filter(book => {
+        const price = book.price;
+        const min = filters.priceRange.min ? parseFloat(filters.priceRange.min) : 0 ;
+        const max = filters.priceRange.max ? parseFloat(filters.priceRange.max) : Infinity ;
+        return price >= min && price <= max ;
+      });
+    }
+    // apply category filters
+    Object.keys(filters).forEach(filterKey => {
+        if ( filterKey !== 'priceRange' && filters[filterKey].length > 0){
+          result = result.filter(book => {
+            filters[filterKey].some(value => {
+              book[filterKey]?.toLowerCase().include(value.toLowerCase());
+            })
+          });
+        }
+    })
+
+    // apply sorting 
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'alphabetical-asc':
+          return a.title.localecompare(b.title);
+        case 'alphabetical-desc':
+          return b.title.localecompare(a.title);
+        case 'price-low-high':
+          return a.price - b.price;
+        case 'price-high-low':
+          return b.price - a.price;
+        case 'newest':
+          return new data(b.createAt) - data(a.createAt);
+        default:
+          return 0;
+      }
+    });
+
+    setFilterBook(result);
+    setCurrentPage(1);
+  }, [books, filters, sortBy]);
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  }
+
+  const handleSortChange = (newSortBy) => {
+    setSortBy(newSortBy);
+  }
+
+  const handleItemPerPageChange = (newItemPerPage) => {
+    setItemPerPage(newItemPerPage);
+    setCurrentPage(1);
+  }
+
+  //Pagination logic 
+
+  const totalItem = filtersBook.length;
+  const totalPages = Math.ceil(totalItem/ itemPerPage);
+  const startIndex = (currentPage -1 ) * itemPerPage;
+  const endIndex =  startIndex + itemPerPage ;
+  const currentBook = filtersBook.slice(startIndex, endIndex);
+
+  //Loading page
+  if(loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <HomeHeader/>
+        <main className="flex-1 flex item-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4">
+              <p className="text-gray-600">Loading Books...</p>
+            </div>
+          </div>
+        </main>
+        <Footer/>
+      </div>
+    )
+  }
+
+  //error page
+  if (error){
+    return(
+      <div className="min-h-screen flex flex-col bg-white">
+        <HomeHeader/>
+        <main className="flex-1 flex-item-center justify-center">
+          <div className="text-center">
+            <p className="text-red-500 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            >
+              Retry
+            </button>
+          </div>
+        </main>
+        <Footer/>
+      </div>
+    )
+  }
+
+
+  return(
     <div className="min-h-screen flex flex-col bg-white">
-      <HomeHeader />
+      <HomeHeader/>
       <main className="flex-1 flex flex-col">
-        <div className="flex flex-1 max-w-7xl mx-auto w-full pt-12 pb-8 px-4">
-          {/* Sidebar */}
-          <aside className="w-64 hidden lg:block pr-8">
-            <div className="bg-white rounded p-6">
-              <div className="mb-6">
-                <h3 className="font-semibold mb-2">Price</h3>
-                <div className="flex items-center mb-2">
-                  <input type="num"
-                    placeholder="$"
-                    className="w-16 border border-gray-300 rounded px-2 py-1 mr-2"
-                    onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')}
-                  />
-                  <span className="mx-1">to</span>
-                  <input type="num"
-                    placeholder="$"
-                    className="w-16 border border-gray-300 rounded px-2 py-1 ml-2"
-                    onInput={e => e.target.value = e.target.value.replace(/[^0-9]/g, '')} />
-                </div>
-                <button className="w-full bg-red-500 text-white py-2 rounded font-semibold mt-2">Filter</button>
-              </div>
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center cursor-pointer py-2">
-                  <span>Product type</span>
-                  <span>+</span>
-                </div>
-                <div className="flex justify-between items-center cursor-pointer py-2">
-                  <span>Availability</span>
-                  <span>+</span>
-                </div>
-                <div className="flex justify-between items-center cursor-pointer py-2">
-                  <span>Brand</span>
-                  <span>+</span>
-                </div>
-                <div className="flex justify-between items-center cursor-pointer py-2">
-                  <span>Color</span>
-                  <span>+</span>
-                </div>
-                <div className="flex justify-between items-center cursor-pointer py-2">
-                  <span>Material</span>
-                  <span>+</span>
-                </div>
-              </div>
-            </div>
-          </aside>
-          {/* Main Content */}
+        <div className="flex flex-1 max-w-7xl mx-auto w-auto pt-12 pb-8 px-4">
+          <FilterSidebar
+            filters={filters}
+            filterOptions={filterOptions}
+            onFilterChange={handleFilterChange}
+          />
+
           <section className="flex-1">
-            {/* Top Controls */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-              <div className="flex items-center space-x-4 mb-2 md:mb-0">
-                <span className="font-semibold text-sm text-gray-700">Sort by :</span>
-                <select className="border-none bg-transparent font-semibold text-gray-500">
-                  <option>Alphabetically, A-Z</option>
-                  <option>Alphabetically, Z-A</option>
-                  <option>Price, Low to High</option>
-                  <option>Price, High to Low</option>
-                </select>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">Showing 1 - 12 of 26 result</span>
-                <span className="font-semibold text-sm text-gray-700">Show :</span>
-                <select className="border-none bg-transparent font-semibold text-gray-500">
-                  <option>12</option>
-                  <option>24</option>
-                  <option>36</option>
-                </select>
-                <FaSearch className="text-xl text-gray-700 cursor-pointer" />
-                <FaBars className="text-xl text-gray-700 cursor-pointer" />
-              </div>
-            </div>
-            {/* Book Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-              {books.map((book, idx) => (
-                <div key={idx} className="bg-white rounded-lg  p-6 flex flex-col items-center">
-                  <div className="relative w-full h-56 flex items-center justify-center mb-4">
-                    <img
-                      src={book.img}
-                      alt={book.title}
-                      className="object-cover w-full h-full rounded"
-                      
-                    />
-                    
+            <SortControls
+              sortBy={sortBy}
+              itemsPerPage={itemPerPage}
+              totalItems={totalItem}
+              startIndex={startIndex}
+              endIndex={Math.min(endIndex, totalItem)}
+              onSortChange={handleSortChange}
+              onItemsPerPageChange={handleItemPerPageChange}
+            />
 
-                  </div>
-                  <Link to={`/book/${book.id}`} className="block">
-                  <div className="text-center cursor-pointer hover:bg-gray-50 transition ">
-                    <h3 className="font-semibold text-lg mb-1">{book.title}</h3>
-                    <p className="text-gray-500 mb-1">{book.author}</p>
-                    <p className="text-red-500 font-normal text-xl">${book.price.toFixed(2)}</p>
-                    <button className=" cursor-pointer bg-red-500 text-white px-6 py-2  font-semibold shadow  hover:bg-red-600 transition">
-                      ADD TO CART
-                    </button>
-                  </div>
-                </Link>
-                </div>
-              ))}
+            <ProductGrid books={currentBook} />
 
-            </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center item-center mt-8 space-x-2">
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled = {currentPage === 1}
+                  className="px-2 py-3 border rounded disable:opacity-50 disable:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+
+                {[...Array(totalPages)].map((_, index)=> (
+                  <button 
+                    key={index + 1}
+                    onClick={() => setCurrentPage(index + 1)}
+                    className={`px-3 py-2 border rounded ${
+                      currentPage === index + 1
+                      ? 'bg-red-500 text-white'
+                      : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}  
           </section>
         </div>
       </main>
-      <Footer />
+      <Footer/>
     </div>
   );
 }

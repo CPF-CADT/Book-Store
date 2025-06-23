@@ -1,5 +1,4 @@
 import { LoginHeader, Footer } from "../components/HeaderFooter";
-// import React from "react";
 import { Link } from "react-router-dom";
 
 export function Register() {
@@ -84,9 +83,9 @@ export function Register() {
                                     >
                                         Register
                                     </button>
-                                    {/* <Link to="/login" className="text-red-400 text-sm hover:underline">
+                                    <Link to="/login" className="text-red-400 text-sm hover:underline">
                                         Already have an account?
-                                    </Link> */}
+                                    </Link>
                                 </div>
                             </form>
                         </div>
