@@ -101,7 +101,6 @@ export function Homepage(){
   }
 
   //Pagination logic 
-
   const totalItem = filtersBook.length;
   const totalPages = Math.ceil(totalItem/ itemPerPage);
   const startIndex = (currentPage -1 ) * itemPerPage;
@@ -113,7 +112,7 @@ export function Homepage(){
     return (
       <div className="min-h-screen flex flex-col bg-white">
         <HomeHeader/>
-        <main className="flex-1 flex item-center justify-center">
+        <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4">
               <p className="text-gray-600">Loading Books...</p>
@@ -130,7 +129,7 @@ export function Homepage(){
     return(
       <div className="min-h-screen flex flex-col bg-white">
         <HomeHeader/>
-        <main className="flex-1 flex-item-center justify-center">
+        <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-500 mb-4">{error}</p>
             <button
@@ -145,7 +144,6 @@ export function Homepage(){
       </div>
     )
   }
-
 
   return(
     <div className="min-h-screen flex flex-col bg-white">
@@ -173,7 +171,7 @@ export function Homepage(){
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center item-center mt-8 space-x-2">
+              <div className="flex justify-center items-center mt-8 space-x-2">
                 <button 
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled = {currentPage === 1}
