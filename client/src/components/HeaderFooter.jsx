@@ -16,21 +16,21 @@ export function LoginHeader() {
         </div>
         {/* Navigation */}
         <nav className="mt-2 md:mt-0 flex space-x-4">
-          <a href="/" className="text-gray-600 hover:text-red-500 uppercase">Home</a>
-          <a href="/about" className="text-gray-600 hover:text-red-500 uppercase">About Us</a>
-          <a href="/books" className="text-gray-600 hover:text-red-500 uppercase">Book</a>
-          <a href="/new-release" className="text-gray-600 hover:text-red-500 uppercase">New Release</a>
-          <a href="/contact" className="text-gray-600 hover:text-red-500 uppercase">Contact Us</a>
-          <a href="/blog" className="text-gray-600 hover:text-red-500 uppercase">Blog</a>
+          <Link to="/" className="text-gray-600 hover:text-red-500 uppercase">Home</Link>
+          <Link to="/about" className="text-gray-600 hover:text-red-500 uppercase">About Us</Link>
+          <Link to="/books" className="text-gray-600 hover:text-red-500 uppercase">Book</Link>
+          <Link to="/new-release" className="text-gray-600 hover:text-red-500 uppercase">New Release</Link>
+          <Link to="/contact" className="text-gray-600 hover:text-red-500 uppercase">Contact Us</Link>
+          <Link to="/blog" className="text-gray-600 hover:text-red-500 uppercase">Blog</Link>
         </nav>
         {/* Icons (Cart and Login) */}
         <div className="flex space-x-3">
-          <a href="store" className="text-gray-600 hover:text-red-500">
+          <Link to="/books" className="text-gray-600 hover:text-red-500">
             🛒 store
-          </a>
-          <a href="/login" className="text-gray-600 hover:text-red-500">
+          </Link>
+          <Link to="/login" className="text-gray-600 hover:text-red-500">
             👤 Login
-          </a>
+          </Link>
         </div>
       </div>
     </header>
@@ -38,6 +38,8 @@ export function LoginHeader() {
 }
 
 
+// HomeHeader component is currently not used in the application
+// Keeping it commented out for potential future use
 export function HomeHeader() {
   return (
     <header className="w-full bg-white shadow-sm">
@@ -106,7 +108,7 @@ export function HomeHeader() {
       </div>
     </header>
   );
-}
+} 
 
 export function Footer() {
   return (
@@ -135,21 +137,21 @@ export function Footer() {
         <div>
           <h3 className="text-lg font-semibold mb-3">Company</h3>
           <ul className="space-y-2">
-            <li><a href="/" className="hover:underline">Home</a></li>
-            <li><a href="/about" className="hover:underline">About Us</a></li>
-            <li><a href="/books" className="hover:underline">Books</a></li>
-            <li><a href="/new-release" className="hover:underline">New Release</a></li>
-            <li><a href="/contact" className="hover:underline">Contact Us</a></li>
-            <li><a href="/blog" className="hover:underline">Blog</a></li>
+            <li><Link to="/" className="hover:underline">Home</Link></li>
+            <li><Link to="/about" className="hover:underline">About Us</Link></li>
+            <li><Link to="/books" className="hover:underline">Books</Link></li>
+            <li><Link to="/new-release" className="hover:underline">New Release</Link></li>
+            <li><Link to="/contact" className="hover:underline">Contact Us</Link></li>
+            <li><Link to="/blog" className="hover:underline">Blog</Link></li>
           </ul>
         </div>
         {/* Important Links */}
         <div>
           <h3 className="text-lg font-semibold mb-3">Important Links</h3>
           <ul className="space-y-2">
-            <li><a href="/privacy" className="hover:underline">Privacy Policy</a></li>
-            <li><a href="/faq" className="hover:underline">FAQs</a></li>
-            <li><a href="/terms" className="hover:underline">Terms of Service</a></li>
+            <li><Link to="/privacy" className="hover:underline">Privacy Policy</Link></li>
+            <li><Link to="/faq" className="hover:underline">FAQs</Link></li>
+            <li><Link to="/terms" className="hover:underline">Terms of Service</Link></li>
           </ul>
         </div>
       </div>

@@ -1,5 +1,5 @@
 // services/api.js
-const API_BASE_URL = import.meta.env.REACT_APP_API_URL || '/api';
+const API_BASE_URL = '/api';
 
 // Generic API call function
 async function apiCall(endpoint, options = {}) {
