@@ -12,14 +12,17 @@ import './module/CartItemDb.js';
 import cors from 'cors';
 import { sequelizes } from './utils/database.js';
 import userRoutes from "./routes/userRoutes.js";
+import vendorRoutes from './routes/vendorRoutes.js';
+import bookroutes from './routes/books.js'
 
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/user",userRoutes);
-
+app.use("/api/customer",userRoutes);
+app.use("/api/vendor",vendorRoutes);
+app.use('/api/books',bookroutes);
 app.get('/', (req, res) => {
     res.send('Welcome to the server!');
 });

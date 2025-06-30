@@ -156,4 +156,4 @@ const ProductCard = ({book}) => {
   );
 }
 
-export default ProductCard
+export default ProductCard;
