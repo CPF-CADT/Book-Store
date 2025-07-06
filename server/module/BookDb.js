@@ -4,6 +4,7 @@ import { DataTypes } from "sequelize";
 import { sequelizes } from "../utils/database.js";
 import { publishers } from "./PublishersDb.js";
 import { categories } from "./categoriesDb.js";
+import { Tags } from "./tagsDb.js";
 
 export const Books = sequelizes.define(
     "Books",

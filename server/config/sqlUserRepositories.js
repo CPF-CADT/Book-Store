@@ -4,8 +4,8 @@ import { cartItems } from "../module/CartItemDb.js"; // Updated import path
 import { Books } from "../module/BookDb.js";// Adjust path to your Book model
 import bcrypt from "bcrypt";
 
-// Sign-up function
-export async function sign_up(userData) {
+// Customer Sign-up function
+export async function signUp(userData,role) {
   const { email, password, first_name, last_name, phone } = userData;
 
   // Validate required fields
@@ -30,7 +30,7 @@ export async function sign_up(userData) {
       first_name,
       last_name,
       phone,
-      role: "customer", // Default role
+      role: role, // Default role
       is_active: true,
       email_verified: false,
     });
@@ -52,6 +52,8 @@ export async function sign_up(userData) {
     throw error;
   }
 }
+// Vendor Sign up
+
 
 // Login function
 export async function login({ email, password }) {
@@ -98,32 +100,28 @@ export async function login({ email, password }) {
 
 // Get user profile details
 export async function getUserProfileDetail(id) {
-  try {
-    const user = await Users.findByPk(id, {
-      attributes: { exclude: ["password_hash"] }, // Exclude sensitive data
-      include: [
-        {
-          model: reviews,
-          as: "reviews",
-          include: [{ model: Books, as: "book" }],
-        },
-        {
-          model: cartItems,
-          as: "cartItems",
-          include: [{ model: Books, as: "book" }],
-        },
-      ],
-    });
+  const user = await Users.findByPk(id, {
+    attributes: { exclude: ["password_hash"] },
+    include: [
+      {
+        model: reviews,
+        as: "reviews",
+        include: [{ model: Books, as: "book" }],
+      },
+      {
+        model: cartItems,
+        as: "cartItems",
+        include: [{ model: Books, as: "book" }],
+      },
+    ],
+  });
 
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    return user.toJSON();
-  } catch (error) {
-    console.error("Error fetching user profile:", error.message);
-    throw error;
+  if (!user) {
+    // This error will be caught by the controller's try...catch block
+    throw new Error("User not found");
   }
+
+  return user.toJSON();
 }
 
 // Update user profile
