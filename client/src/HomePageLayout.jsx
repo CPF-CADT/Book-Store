@@ -11,7 +11,7 @@ export function HomePageLayout() {
       <main className="flex">
         {/* <FilterSideBar /> */}
         <div className="flex-1">
-          <Homepage />
+          <Homepage/>
           <SortControls />
           <ProductGrid />
         </div>

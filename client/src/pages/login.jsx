@@ -1,10 +1,8 @@
-import { LoginHeader,Footer } from "../components/HeaderFooter";
 import { Link } from "react-router-dom";
 
 export function Login() {
   return (
     <>
-    <LoginHeader />
     
     <div className="pt-24 pb-40 min-h-dvh mt-10 bg-white flex flex-col">
       <div className="max-w-5xl mx-auto w-full mt-8">
@@ -63,7 +61,6 @@ export function Login() {
         <div className="mt-8 text-lg font-medium">New Customer? <Link to="/register" className="text-red-500 hover:underline">Register Now</Link></div>
       </div>
     </div>
-    <Footer />
     </>
   );
 }

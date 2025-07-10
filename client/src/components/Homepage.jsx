@@ -1,5 +1,4 @@
 import { useEffect, useState} from "react";
-import { HomeHeader, Footer} from "./HeaderFooter";
 import { data } from "react-router-dom";
 
 export function Homepage(){
@@ -111,7 +110,6 @@ export function Homepage(){
   if(loading) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <HomeHeader/>
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4">
@@ -119,7 +117,6 @@ export function Homepage(){
             </div>
           </div>
         </main>
-        <Footer/>
       </div>
     )
   }
@@ -128,7 +125,6 @@ export function Homepage(){
   if (error){
     return(
       <div className="min-h-screen flex flex-col bg-white">
-        <HomeHeader/>
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-500 mb-4">{error}</p>
@@ -140,14 +136,12 @@ export function Homepage(){
             </button>
           </div>
         </main>
-        <Footer/>
       </div>
     )
   }
 
   return(
     <div className="min-h-screen flex flex-col bg-white">
-      <HomeHeader/>
       <main className="flex-1 flex flex-col">
         <div className="flex flex-1 max-w-7xl mx-auto w-auto pt-12 pb-8 px-4">
           <FilterSidebar
@@ -206,7 +200,6 @@ export function Homepage(){
           </section>
         </div>
       </main>
-      <Footer/>
     </div>
   );
 }
