@@ -12,15 +12,9 @@
 // export { pool };
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({path:'../.env'});
 
-// console.log("ENV CONFIG:", {
-//   host: process.env.DB_HOST,
-//   user: process.env.DB_USER,
-//   password: process.env.DB_PASSWORD,
-//   database: process.env.DB_NAME,
-//   port: process.env.DB_PORT,
-// });
+
 
 const sequelizes = new Sequelize({
   host: process.env.DB_HOST,
@@ -31,5 +25,12 @@ const sequelizes = new Sequelize({
   dialect: "mysql",
   logging: console.log,
 });
+// console.log("ENV CONFIG:", {
+//   host: process.env.DB_HOST,
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASSWORD,
+//   database: process.env.DB_NAME,
+//   port: process.env.DB_PORT,
+// });
 console.log(process.env.DB_NAME);
 export { sequelizes };
