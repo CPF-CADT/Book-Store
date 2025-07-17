@@ -32,7 +32,7 @@ export const Users = sequelizes.define(
       allowNull: true,
     },
     phone: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.STRING(30),
       allowNull: true,
     },
     role: {
