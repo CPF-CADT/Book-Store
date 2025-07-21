@@ -1,4 +1,4 @@
-import * as userRespositories from "../config/sqlUserRepositories.js";
+import * as userRespositories from "../Repositories/sqlUserRepositories.js";
 export async function CustomerSignUp(req, res) {
   try {
     const newUser = await userRespositories.signUp(req.body,'customer');
