@@ -12,7 +12,6 @@ export const BookAuthors = sequelizes.define('BookAuthors',
       primaryKey: true,
       allowNull: false,
       references: {
-        // FIX: The table name for Books is 'Books' (capitalized)
         model: 'Books',
         key: 'id',
         },

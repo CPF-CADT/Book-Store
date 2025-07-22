@@ -47,15 +47,25 @@ export async function updateBook(req,res) {
     }
     
 }
-export async function deleteBooks(res,req) {
-    try {
-        const userId=req.params.userId;
-        const bookIds=req.body;
-        const result= await bookRepositories.updatebooks(userId,bookIds);
-        res.status(200).json(result);
-    } catch (error) {
-    console.log(error);
-    res.status(500).json({error:error.message});
+export async function deleteBooks(req, res) {
+  try {
+    const userId = req.params.userId;
+    const idsQuery = req.query.ids;
+    if (!idsQuery) {
+      return res.status(400).json({ error: "Missing book IDs in query" });
     }
-    
+    const bookIds = idsQuery
+      .split(",")
+      .map((id) => parseInt(id))
+      .filter((id) => !isNaN(id));
+    if (bookIds.length === 0) {
+      return res.status(400).json({ error: "No valid book IDs provided" });
+    }
+    const result = await bookRepositories.deleteBooks(userId, bookIds);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error deleting books:", error.message);
+    res.status(500).json({ error: error.message });
+  }
 }
