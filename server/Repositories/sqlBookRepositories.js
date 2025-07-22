@@ -151,7 +151,8 @@ export async function getbookdetail(bookid) {
     console.log(error);
   }
 
-}
+};
+
 export async function createBooks(UserId, Book) {
   const t = await sequelizes.transaction();
   try {
@@ -240,7 +241,7 @@ export async function updatebooks(UserId,bookId,newBookData) {
       language,
       format,
       status,
-      tag = [] // default to empty array if undefined
+      tag = [] 
     } = newBookData;
     const bookupdate = await book.set({
       title,
@@ -258,7 +259,7 @@ export async function updatebooks(UserId,bookId,newBookData) {
       status,
     },{transaction:t});
     await book.save({transaction:t});
-    await BookTags.destroy({where:{book_id:bookId},transaction:t})
+    // await BookTags.destroy({where:{book_id:bookId},transaction:t})
     let bookTags = [];
     if (Array.isArray(tag) &&  tag.length>0) {
      const UpdateBookTags= await tag.map(tagId=>({
@@ -284,8 +285,8 @@ export async function updatebooks(UserId,bookId,newBookData) {
   
 }
 
-export async function deleteBooks(userId, bookIds = []) {
-  const t = await sequelize.transaction();
+export async function deleteBooks(userId, bookIds) {
+  const t = await sequelizes.transaction();
 
   try {
     const user = await Users.findOne({
@@ -297,7 +298,6 @@ export async function deleteBooks(userId, bookIds = []) {
       await t.rollback();
       return null;
     }
-    // await BookTags.destroy({ where: { book_id: bookIds }, transaction: t });
     const deleted = await Books.destroy({
       where: { id: bookIds },
       transaction: t
