@@ -13,7 +13,7 @@ async function getCart(u_id) {
 }
 
 async function addToCart(u_id, b_id, qty) {
-
+  
 }
 try {
   await getCart(1);
