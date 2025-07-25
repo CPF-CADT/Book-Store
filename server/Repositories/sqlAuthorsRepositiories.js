@@ -126,15 +126,22 @@ export async function updateAuthor(UserId,authorId,authorData) {
   }
   
 }
-export async function deleteAuthor(UserId,authorId=[]) {
+export async function deleteAuthor(UserId,authorIds) {
   const t= await sequelizes.transaction();
 
   try {
         const user= await Users.findOne({where:{id:UserId,role:"vendor"},transaction:t});
-    if(!user || !Array.isArray(authorId) || authorId.length === 0) return  await t.rollback();
-    const delectAuthor = await authors.destroy()
+if(!user || !Array.isArray(authorIds) || authorIds.length === 0)  { await t.rollback() ;return null ;}
+    const deletedAuthor = await authors.destroy({
+      where:{id:authorIds},
+      transaction:t
+    })
+       await t.commit();
+    return { message: `${deletedAuthor} Author deleted.` };
   } catch (error) {
-    
+  await t.rollback();
+  console.error('Error deleting Author:', error.message);
+  throw error;
   }
   
 }

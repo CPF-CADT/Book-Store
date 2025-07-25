@@ -1,3 +1,4 @@
+// file sqlbookrepo
 import { Model } from "sequelize";
 import { Books } from "../module/BookDb.js";
 import { categories } from "../module/categoriesDb.js";
@@ -221,68 +222,45 @@ export async function createBooks(UserId, Book) {
     throw error;
   }
 }
-export async function updatebooks(UserId,bookId,newBookData) {
+export async function updatebooks(userId, bookId, newBookData) {
   const t = await sequelizes.transaction();
   try {
-    const user= await Users.findOne({where: {id:UserId,role: 'vendor'},transaction:t});
-    const book = await Books.findOne({where:{id:bookId},transaction: t})
-    if(!user || !book) return null;
-     const {
-      title,
-      description,
-      price,
-      original_price,
-      image_url,
-      isbn,
-      stock,
-      category_id,
-      publisher_id,
-      pages_count,
-      language,
-      format,
-      status,
-      tag = [] 
-    } = newBookData;
-    const bookupdate = await book.set({
-      title,
-      description,
-      price,
-      original_price,
-      image_url,
-      isbn,
-      stock,
-      category_id,
-      publisher_id,
-      pages_count,
-      language,
-      format,
-      status,
-    },{transaction:t});
-    await book.save({transaction:t});
-    // await BookTags.destroy({where:{book_id:bookId},transaction:t})
-    let bookTags = [];
-    if (Array.isArray(tag) &&  tag.length>0) {
-     const UpdateBookTags= await tag.map(tagId=>({
-      book_id: book.id,
-      tag_id: tagId
-     }))
-     bookTags= await BookTags.bulkCreate(UpdateBookTags,{transaction:t});
+    const user = await Users.findOne({ where: { id: userId, role: 'vendor' }, transaction: t });
+    const book = await Books.findByPk(bookId, { transaction: t });
 
+    if (!user) {
+      throw new Error("Authorization failed: User does not have permission.");
     }
-    
-    await t.commit();
- return {
-      UpdateBook: book,
-      UpdateBookTags:bookTags
-    };
+    if (!book) {
+      throw new Error("Book not found.");
+    }
 
-    
+    // Update book details
+    await book.update(newBookData, { transaction: t });
+
+    if (newBookData.tag && Array.isArray(newBookData.tag)) {
+      await BookTags.destroy({ where: { book_id: book.id }, transaction: t });
+
+      if (newBookData.tag.length > 0) {
+        const bookTagsToCreate = newBookData.tag.map(tagId => ({
+          book_id: book.id,
+          tag_id: tagId
+        }));
+        await BookTags.bulkCreate(bookTagsToCreate, { transaction: t });
+      }
+    }
+
+    await t.commit();
+    const updatedBookWithAssociations = await Books.findByPk(book.id, {
+        include: ['authors', 'tags', 'category']
+    });
+    return updatedBookWithAssociations;
+
   } catch (error) {
     await t.rollback();
-    console.error('Error creating book:', error.message);
+    console.error('Error updating book:', error.message);
     throw error;
   }
-  
 }
 
 export async function deleteBooks(userId, bookIds) {
@@ -304,7 +282,7 @@ export async function deleteBooks(userId, bookIds) {
     });
 
     await t.commit();
-    return { message: `${deleted} book(s) deleted.` };
+    return { message: `${deleted} book deleted.` };
 
   } catch (error) {
     await t.rollback();

@@ -20,6 +20,10 @@ import './module/CartItemDb.js';
 import userRoutes from './routes/userRoutes.js';
 import vendorRoutes from './routes/vendorRoutes.js';
 import bookRoutes from './routes/books.js';
+import categoryRoute from './routes/categories.js';
+import authorRoutes from './routes/author.js';
+import publisherRoutes from './routes/pulishers.js';
+import tagRoutes from './routes/tag.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,11 +36,13 @@ app.use(express.json());
 
 
 // Routes
-app.use('/api.auth', userRoutes);
 app.use('/api/customer', userRoutes);
 app.use('/api/vendor', vendorRoutes);
 app.use('/api/books', bookRoutes);
-
+app.use ('/api/category',categoryRoute);
+app.use ('/api/author',authorRoutes);
+app.use ('/api/publisher',publisherRoutes);
+app.use ('/api/tag',tagRoutes);
 app.get('/', (req, res) => {
   res.send('📚 Welcome to the Bookstore API Server!');
 });

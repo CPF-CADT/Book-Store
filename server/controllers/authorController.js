@@ -49,3 +49,26 @@ export async function handleUpdateAuthor(req,res) {
   }
   
 }
+export async function handleDeleteAuthor(req,res) {
+  try {
+    const userId = req.params.userId;
+    const idsQuery = req.query.ids;
+    if (!idsQuery) {
+      return res.status(400).json({ error: "Missing Author IDs in query" });
+    }
+     const authorIds = idsQuery
+          .split(",")
+          .map((id) => parseInt(id))
+          .filter((id) => !isNaN(id));
+        if (authorIds.length === 0) {
+          return res.status(400).json({ error: "No valid Author IDs provided" });
+        }
+        const result = await authorRepositories.deleteAuthor(userId, authorIds);
+    
+        res.status(200).json(result);
+  } catch (error) {
+     console.error("Error deleting Author:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+  
+}

@@ -1,4 +1,5 @@
 import * as userRespositories from "../Repositories/sqlUserRepositories.js";
+import jwt from "jsonwebtoken";
 export async function CustomerSignUp(req, res) {
   try {
     const newUser = await userRespositories.signUp(req.body,'customer');

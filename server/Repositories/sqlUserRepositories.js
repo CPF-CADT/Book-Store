@@ -3,6 +3,7 @@ import { reviews } from "../module/reviewsDb.js"; // Updated import path
 import { cartItems } from "../module/CartItemDb.js"; // Updated import path
 import { Books } from "../module/BookDb.js";// Adjust path to your Book model
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 // Customer Sign-up function
 export async function signUp(userData,role) {
@@ -79,6 +80,10 @@ export async function login({ email, password }) {
     if (!user.is_active) {
       throw new Error("Account is deactivated");
     }
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" });
 
     // Return user data (excluding password_hash)
     return {
@@ -91,6 +96,7 @@ export async function login({ email, password }) {
       is_active: user.is_active,
       email_verified: user.email_verified,
       created_at: user.created_at,
+      token: token,
     };
   } catch (error) {
     console.error("Error during login:", error.message);
