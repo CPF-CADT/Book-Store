@@ -2,24 +2,43 @@ import axios from "axios";
 
 const API_BASE_URL = "http://localhost:4000/api";
 
-// Get all books (with optional search)
-export const fetchBooks = (searchQuery = "") => {
-  let url = `${API_BASE_URL}/books`;
-  if (searchQuery) {
-    url += `?searchQuery=${encodeURIComponent(searchQuery)}`;
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return axios.get(url).then(res => res.data);
+);
+
+export const registerUser = (userData) => {
+  return axiosInstance.post("/user/sign-up", userData);
+};
+export const updateUserProfile = (id, role = "customer", profileData) => {
+  return axiosInstance.put(`/${role}/profile-detail/${id}`, profileData);
 };
 
-// Example: Get a single book by ID
+export const loginUser = (credentials) => {
+  return axiosInstance.post("/user/login", credentials);
+};
+
+export const fetchUserProfile = (id, role = "customer") => {
+
+  return axiosInstance.get(`/${role}/profile-detail/${id}`);
+};
+
+export const fetchBooks = (params = {}) => {
+  return axiosInstance.get("/books", { params });
+};
+
 export const fetchBookById = (id) => {
-  return axios.get(`${API_BASE_URL}/books/${id}`).then(res => res.data);
-};
-
-// Example: Get user profile by ID
-export const fetchUserProfile = (id) => {
-  return axios.get(`${API_BASE_URL}/customer/Profile-Detail/${id}`).then(res => res.data);
-};
-export const fetchFilters = () => {
-  return axios.get(`${API_BASE_URL}/filters`).then(res => res.data);
+  return axiosInstance.get(`/books/${id}`);
 };

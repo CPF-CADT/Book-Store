@@ -1,23 +1,11 @@
 import React, { useState } from 'react';
 // import { Menu, X, User, ShoppingBag, Heart } from 'lucide-react';
 import { Menu, X, User, ShoppingBag, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // import HeaderFooter from './components/HeaderFooter';
 
-// Mock Link component for demonstration - replace with your actual Link component
-const Link = ({ to, children, className, onClick }) => (
-  <a 
-    href={to} 
-    className={className} 
-    onClick={(e) => {
-      e.preventDefault();
-      console.log(`Navigating to: ${to}`);
-      if (onClick) onClick();
-    }}
-  >
-    {children}
-  </a>
-);
+
 
 // Mock FontAwesome icons - replace with your actual imports
 const FaUser = () => <User size={20} />;
@@ -36,7 +24,7 @@ export function LoginHeader() {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-pink-200 to-white text-gray-800 p-4">
+    <header className="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-pink-200 to-white text-gray-800 p-4 shadow-sm">
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -51,7 +39,7 @@ export function LoginHeader() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-14">
+          <nav className="hidden md:flex items-center space-x-8">
             <Link to="/books" className="text-gray-600 hover:text-red-500 uppercase transition-colors">
               Book
             </Link>
@@ -71,6 +59,22 @@ export function LoginHeader() {
               About Us
             </Link>
           </nav>
+
+          {/* FIX: Login/Register Buttons for Desktop */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Link 
+              to="/login" 
+              className="text-gray-600 hover:text-red-500 font-semibold uppercase transition-colors"
+            >
+              Login
+            </Link>
+            <Link 
+              to="/register" 
+              className="bg-red-500 text-white px-4 py-2 rounded-full font-semibold uppercase hover:bg-red-600 transition-colors"
+            >
+              Register
+            </Link>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
@@ -93,6 +97,7 @@ export function LoginHeader() {
               >
                 Book
               </Link>
+              {/* ... other mobile links ... */}
               <Link 
                 to="/new-release" 
                 className="text-gray-600 hover:text-red-500 uppercase transition-colors py-2 px-2 hover:bg-white hover:bg-opacity-50 rounded"
@@ -128,6 +133,24 @@ export function LoginHeader() {
               >
                 About Us
               </Link>
+              
+              {/* FIX: Login/Register Buttons for Mobile */}
+              <div className="pt-4 mt-4 border-t border-gray-300 flex flex-col space-y-3">
+                <Link
+                  to="/login"
+                  onClick={handleLinkClick}
+                  className="w-full text-center bg-gray-200 text-gray-800 px-4 py-2 rounded-full font-semibold uppercase hover:bg-gray-300 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={handleLinkClick}
+                  className="w-full text-center bg-red-500 text-white px-4 py-2 rounded-full font-semibold uppercase hover:bg-red-600 transition-colors"
+                >
+                  Register
+                </Link>
+              </div>
             </nav>
           </div>
         )}

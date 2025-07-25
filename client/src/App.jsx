@@ -8,7 +8,7 @@ import { HomePageLayout } from "./HomePageLayout";
 
 function App() {
   return (
-    <BrowserRouter>
+    // <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePageLayout />} />
         <Route path="/login" element={<Login />} />
@@ -18,8 +18,15 @@ function App() {
         {/* <Route path="about" element={<AboutPage />} />
         <Route path="books" element={<BookPage />} /> */}
         
+
+             <Route path="/vendor/:id/dashboard" element={<Account_detail />} />
+      <Route path="/admin/:id/dashboard" element={<Account_detail />} /> {/* Admins can share the vendor dashboard */}
+      <Route path="/customer/:id/profile" element={<Account_detail />} />
+
+      {/* Catch-all 404 Route */}
+      <Route path="*" element={<Account_detail />} />
       </Routes>
-    </BrowserRouter>
+    // </BrowserRouter>
   );
 }
 

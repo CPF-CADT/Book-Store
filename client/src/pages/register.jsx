@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; 
+import { registerUser } from "../services/api";
 
 export function Register() {
     // State to hold form data
@@ -14,7 +15,9 @@ export function Register() {
     });
 
     // State to hold validation errors
-    const [errors, setErrors] = useState({});
+       const [errors, setErrors] = useState({});
+    const [serverError, setServerError] = useState(''); // For general server errors
+    const navigate = useNavigate();
 
     // Handle input changes and update state
     const handleChange = (e) => {
@@ -23,64 +26,79 @@ export function Register() {
             ...prevState,
             [id]: value
         }));
+        // Clear validation error when user starts typing
+        if (errors[id]) {
+            setErrors(prevErrors => ({ ...prevErrors, [id]: null }));
+        }
+        setServerError('');
     };
 
+    
     // Validate the form before submission
-    const validateForm = () => {
+      const validateForm = () => {
         const newErrors = {};
-
-        // Name validation
         if (!formData.name.trim()) newErrors.name = "Name is required.";
-        
-        // Email validation
         if (!formData.email.trim()) {
             newErrors.email = "Email is required.";
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             newErrors.email = "Email address is invalid.";
         }
-
-        // Password validation
         if (!formData.password) newErrors.password = "Password is required.";
+        else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters.";
         
-        // Confirm Password validation
-        if (!formData.confirmPassword) {
-            newErrors.confirmPassword = "Please confirm your password.";
-        } else if (formData.password !== formData.confirmPassword) {
+        if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = "Passwords do not match.";
         }
-
-        // Phone number validation
         if (!formData.phone.trim()) newErrors.phone = "Phone number is required.";
-
         return newErrors;
     };
 
-    const navigate = useNavigate();
+    
     // Handle the form submission
-    const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
         e.preventDefault();
+        setServerError(''); // Clear previous server errors
 
-        const validateErrors = validateForm();
-        setErrors(validateErrors);
+        const validationErrors = validateForm();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
 
-        if (Object.keys(validateErrors).length === 0) {
-            try {
-                const res = await axios.post("http://localhost:3000/api/register", {
-                    name: formData.name,
-                    email: formData.email,
-                    password: formData.password,
-                    phone: formData.phone
-                });
+        // Split name into first_name and last_name for the backend
+        const nameParts = formData.name.trim().split(' ');
+        const first_name = nameParts[0];
+        const last_name = nameParts.slice(1).join(' ') || first_name; // Handle single names
 
-                if (res.data.success) {
-                    alert("Registration successful!");
-                    navigate("/login");
+        const payload = {
+            first_name,
+            last_name,
+            email: formData.email,
+            password: formData.password, // Your backend might expect 'password_hash' or 'password'
+            phone: formData.phone,
+            role: 'customer' // Default role for public registration
+        };
+
+        try {
+            // Use the clean API function
+            await registerUser(payload);
+            
+            alert("Registration successful! Please log in.");
+            navigate("/"); 
+
+        } catch (error) {
+            console.error("Registration error:", error);
+            // This is how you get the error message from the backend with Axios
+            if (error.response && error.response.data && error.response.data.message) {
+                const errorMessage = error.response.data.message;
+                // Handle specific backend validation errors
+                if (errorMessage.toLowerCase().includes("email")) {
+                    setErrors(prev => ({ ...prev, email: errorMessage }));
                 } else {
-                    alert(res.data.message || "Registration failed.");
+                    setServerError(errorMessage); // Show general errors
                 }
-            } catch (error) {
-                console.error("Registration error:");
-                // alert("Something went wrong.");
+            } else {
+                setServerError("Registration failed. Please try again later.");
             }
         }
     };
@@ -90,6 +108,12 @@ export function Register() {
                 <div className="max-w-5xl mx-auto w-full mt-8 px-4">
                     <Link to="/" className="text-sm text-black mb-2 inline-block">&lt; Back to Home</Link>
                     <h1 className="text-3xl font-bold mb-4">Register</h1>
+                      {serverError && (
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <strong className="font-bold">Error: </strong>
+                            <span className="block sm:inline">{serverError}</span>
+                        </div>
+                    )}
                     <div className="bg-[#fafafa] rounded-md flex flex-col md:flex-row shadow-sm border-l-4 border-red-500">
                         {/* Left: Register Form */}
                         <div className="flex-1 p-8">
