@@ -58,7 +58,7 @@ export async function getUserProfileDetail(req, res) {
 export async function Updateprofile(req,res) {
   try{
     
-    const user = await userRespositories.Updateprofile(req.params.id,req.body);
+    const user = await userRespositories.updateProfile(req.params.id,req.body);
     res.status(201).json(user);
 
   }catch(err){

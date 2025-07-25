@@ -36,6 +36,7 @@ app.use(express.json());
 
 
 // Routes
+app.use('/api/user', userRoutes);
 app.use('/api/customer', userRoutes);
 app.use('/api/vendor', vendorRoutes);
 app.use('/api/books', bookRoutes);

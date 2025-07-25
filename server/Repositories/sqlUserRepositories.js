@@ -67,13 +67,13 @@ export async function login({ email, password }) {
     // Find user by email
     const user = await Users.findOne({ where: { email } });
     if (!user) {
-      throw new Error("Invalid email or password");
+      throw new Error("Invalid email ");
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
-      throw new Error("Invalid email or password");
+      throw new Error("Invalid  password");
     }
 
     // Check if user is active
@@ -83,7 +83,7 @@ export async function login({ email, password }) {
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" });
+      { expiresIn: "30d" });
 
     // Return user data (excluding password_hash)
     return {
@@ -132,7 +132,7 @@ export async function getUserProfileDetail(id) {
 
 // Update user profile
 export async function updateProfile(id, userData) {
-  const { email, password, first_name, last_name, phone } = userData;
+  const { password, first_name, last_name, phone } = userData;
 
   try {
     // Find user
@@ -143,21 +143,21 @@ export async function updateProfile(id, userData) {
 
     // Prepare update data
     const updateData = {};
-    if (email && email !== user.email) {
-      const existingUser = await Users.findOne({ where: { email } });
-      if (existingUser) {
-        throw new Error("Email already in use");
-      }
-      updateData.email = email;
-    }
+
     if (password) {
       updateData.password_hash = await bcrypt.hash(password, 10);
     }
+
     if (first_name !== undefined) updateData.first_name = first_name;
     if (last_name !== undefined) updateData.last_name = last_name;
     if (phone !== undefined) updateData.phone = phone;
 
-    // Update user
+    // Check if there are any fields to update
+    if (Object.keys(updateData).length === 0) {
+      return user.toJSON();
+    }
+
+    // Perform the update
     const [affectedRows] = await Users.update(updateData, {
       where: { id },
     });
@@ -166,10 +166,11 @@ export async function updateProfile(id, userData) {
       throw new Error("No changes made or user not found");
     }
 
-    // Fetch updated user
+    // Return updated user without password
     const updatedUser = await Users.findByPk(id, {
       attributes: { exclude: ["password_hash"] },
     });
+
     return updatedUser.toJSON();
   } catch (error) {
     console.error("Error updating profile:", error.message);

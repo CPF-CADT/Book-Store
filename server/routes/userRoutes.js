@@ -3,8 +3,8 @@ import { CustomerSignUp ,login,Updateprofile,getUserProfileDetail} from "../cont
 const user = Router();
 user.post("/sign-up",CustomerSignUp);
 user.post ("/login",login);
-user.get("/Profile-Detail/:id",getUserProfileDetail);
-user.put("/Profile-Detail/:id",Updateprofile);
+user.get("/profile-detail/:id",getUserProfileDetail);
+user.put("/profile-detail/:id",Updateprofile);
 // book
 
 export default user;
