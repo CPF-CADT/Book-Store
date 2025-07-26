@@ -55,11 +55,18 @@ export async function getAllBook( option ={} ) {
     if(option.categoryId){
         queryOptions.where.category_id=option.categoryId;
     };
-    if(option.minPrice && option.maxPrice){
-        queryOptions.where.price={
-            [Op.between]:[option.minPrice,option.maxPrice]
-        };
-        };
+   const priceFilter = {};
+if (option.minPrice) {
+    priceFilter[Op.gte] = parseFloat(option.minPrice); // gte = Greater Than or Equal
+}
+if (option.maxPrice) {
+    priceFilter[Op.lte] = parseFloat(option.maxPrice); // lte = Less Than or Equal
+}
+
+// Only add the 'where.price' clause if at least one price filter is active
+if (Object.keys(priceFilter).length > 0) {
+    queryOptions.where.price = priceFilter;
+};
 if (option.searchQuery) {
   queryOptions.where[Op.or] = [
     { title: { [Op.like]: `%${option.searchQuery}%` } },

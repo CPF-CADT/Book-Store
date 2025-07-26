@@ -24,6 +24,7 @@ import categoryRoute from './routes/categories.js';
 import authorRoutes from './routes/author.js';
 import publisherRoutes from './routes/pulishers.js';
 import tagRoutes from './routes/tag.js';
+import cartRouter from './routes/cart.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,6 +45,7 @@ app.use ('/api/category',categoryRoute);
 app.use ('/api/author',authorRoutes);
 app.use ('/api/publisher',publisherRoutes);
 app.use ('/api/tag',tagRoutes);
+app.use('/api/cart',cartRouter)
 app.get('/', (req, res) => {
   res.send('📚 Welcome to the Bookstore API Server!');
 });
