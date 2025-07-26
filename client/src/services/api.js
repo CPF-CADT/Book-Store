@@ -35,10 +35,23 @@ export const fetchUserProfile = (id, role = "customer") => {
   return axiosInstance.get(`/${role}/profile-detail/${id}`);
 };
 
-export const fetchBooks = (params = {}) => {
-  return axiosInstance.get("/books", { params });
+export const fetchAllBooks = (params = {}) => {
+  return axiosInstance.get('/books', { params });
 };
 
-export const fetchBookById = (id) => {
-  return axiosInstance.get(`/books/${id}`);
+export const fetchBookById = (bookId) => {
+  return axiosInstance.get(`/books/${bookId}`);
+};
+export const createBook = (userId, bookData) => {
+  return axiosInstance.post(`/books/${userId}`, bookData);
+};
+export const updateBook = (userId, bookId, bookData) => {
+  return axiosInstance.patch(`/books/${userId}/${bookId}`, bookData);
+};
+export const deleteBooks = (userId, bookIdsString) => {
+  return axiosInstance.delete(`/books/${userId}/${bookIdsString}`);
+};
+
+export const addToCart = (bookId, quantity = 1) => {
+  return axiosInstance.post('/cart/add', { bookId, quantity });
 };

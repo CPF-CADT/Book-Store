@@ -14,16 +14,9 @@ const ProductCard = ({book}) => {
 
     try{
       //API called add to cart
-      const respone = await fetch('/api/cart/add', {
-        method: 'POST',
-        headers:{
-          'Content-type' : 'application/json',
-        },
-        body: JSON.stringify({
-          bookId: book.id,
-          quantity: 1
-        })
-      });
+       const response = await addToCart(book.id, 1);
+      
+      console.log('Added to cart successfully:', response.data);
 
       if ( respone.ok) console.log('Add to cart successfully');
       else throw new Error('Failed to add to cart');
@@ -116,7 +109,7 @@ const ProductCard = ({book}) => {
               </span>
             )}
             <p className="text-red-500 font-semibold text-xl">
-              ${book.price.toFixed(2)}
+              ${parseFloat(book.price).toFixed(2)}
             </p>
           </div>
 

@@ -3,7 +3,7 @@ import  {Homepage}  from "./components/Homepage";
 import ProductGrid from "./components/ProductGrid";
 // import FilterSideBar from "./components/FilterSideBar";
 import SortControls from "./components/SortControls";
-
+// import FilterSideBar from "./components/FilterSideBar";
 export function HomePageLayout() {
   return (
     <>
@@ -11,8 +11,8 @@ export function HomePageLayout() {
       <main className="flex">
         {/* <FilterSideBar /> */}
         <div className="flex-1">
+          {/* <SortControls /> */}
           <Homepage/>
-          <SortControls />
           <ProductGrid />
         </div>
       </main>
