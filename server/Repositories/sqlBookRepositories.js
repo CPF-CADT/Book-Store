@@ -1,14 +1,14 @@
 // file sqlbookrepo
-import { Model } from "sequelize";
+
 import { Books } from "../module/BookDb.js";
 import { categories } from "../module/categoriesDb.js";
 import { authors } from "../module/authorsDb.js";
 import { Tags } from "../module/tagsDb.js";
-import { Op } from "sequelize";
+import { Model, Op } from "sequelize";
 import { BookTags } from "../module/BooktagesDb.js";
 import { publishers } from "../module/PublishersDb.js";
 import { Users } from "../module/usersDb.js";
-import sequelize from "sequelize";
+
 import { sequelizes } from "../utils/database.js";
 // export async function getbookdetail(Bookid) {
     
@@ -34,6 +34,7 @@ import { sequelizes } from "../utils/database.js";
  */
 export async function getAllBook( option ={} ) {
     try{
+      console.log('hi');
     const pages= parseInt(option.page,10) ||1;
     const limit=parseInt(option.limit,10) || 12;
     const offset=(pages-1)*limit;
@@ -52,29 +53,49 @@ export async function getAllBook( option ={} ) {
         order: [],
         distinct:true,// Important for when filtering on many-to-many includes
     };
-    if(option.categoryId){
-        queryOptions.where.category_id=option.categoryId;
-    };
-   const priceFilter = {};
-if (option.minPrice) {
-    priceFilter[Op.gte] = parseFloat(option.minPrice); // gte = Greater Than or Equal
-}
-if (option.maxPrice) {
-    priceFilter[Op.lte] = parseFloat(option.maxPrice); // lte = Less Than or Equal
+    const whereClauses = [];
+
+// Category filter
+if (option.categoryId) {
+  whereClauses.push({ category_id: option.categoryId });
 }
 
-// Only add the 'where.price' clause if at least one price filter is active
+// Price filter
+const priceFilter = {};
+if (option.minPrice !== undefined && option.minPrice !== "") {
+  const min = parseFloat(option.minPrice);
+  if (!isNaN(min)) priceFilter[Op.gte] = min;
+}
+if (option.maxPrice !== undefined && option.maxPrice !== "") {
+  const max = parseFloat(option.maxPrice);
+  if (!isNaN(max)) priceFilter[Op.lte] = max;
+}
 if (Object.keys(priceFilter).length > 0) {
-    queryOptions.where.price = priceFilter;
-};
-if (option.searchQuery) {
-  queryOptions.where[Op.or] = [
-    { title: { [Op.like]: `%${option.searchQuery}%` } },
-    { description: { [Op.like]: `%${option.searchQuery}%` } }
-  ];
+  whereClauses.push({ price: priceFilter });
+}
 
- 
-};
+// Search filter
+if (option.searchQuery) {
+  whereClauses.push({
+    [Op.or]: [
+      { title: { [Op.like]: `%${option.searchQuery}%` } },
+      { description: { [Op.like]: `%${option.searchQuery}%` } }
+    ]
+  });
+}
+
+// Combine all filters
+if (whereClauses.length === 1) {
+  // Only one filter, use it directly
+  queryOptions.where = whereClauses[0];
+} else if (whereClauses.length > 1) {
+  // Multiple filters, combine with Op.and
+  queryOptions.where = { [Op.and]: whereClauses };
+} else {
+  queryOptions.where = {};
+}
+
+console.log("Query options:", queryOptions);
 if (option.authorName) {
   const authorInclude = queryOptions.include.find(i => i.as === 'authors');
   if (authorInclude) {
@@ -113,6 +134,7 @@ if (option.sortBy) {
   queryOptions.order.push(['create_at', 'DESC']);
 }
 
+console.log("Query options:", queryOptions);
 
  const { count, rows } = await Books.findAndCountAll(queryOptions);
   const totalPages = Math.ceil(count / limit);

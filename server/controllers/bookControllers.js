@@ -2,14 +2,14 @@
 import * as bookRepositories from "../Repositories/sqlBookRepositories.js";
 export async function handleGetAllbooks(req,res) {
     try{
-        const option =req.query;
+        const option = req.query;
         const result = await bookRepositories.getAllBook(option);
+        console.log("--- CONTROLLER LOG --- Received options from req.query:", option);
         res.status(200).json(result);
     }catch(error){
         console.log(error);
         res.status(500).json({message: 'error',error:error.message});
     }
-    
 }
 export async function getbookdetail(req,res) {
     try {
@@ -69,4 +69,18 @@ export async function deleteBooks(req, res) {
     console.error("Error deleting books:", error.message);
     res.status(500).json({ error: error.message });
   }
+}
+
+// Example controller
+export async function getAllBooksController(req, res) {
+  const options = {
+    ...req.query, // This includes minPrice, maxPrice, etc.
+    page: req.query.page,
+    limit: req.query.limit,
+    sortBy: req.query.sortBy,
+    sortOrder: req.query.sortOrder,
+    // ...add other params as needed
+  };
+  const result = await getAllBook(options);
+  res.json(result);
 }
