@@ -55,3 +55,9 @@ export const deleteBooks = (userId, bookIdsString) => {
 export const addToCart = (bookId, quantity = 1) => {
   return axiosInstance.post('/cart/add', { bookId, quantity });
 };
+export const fetchUserProfileAdmin = (id, role) => {
+  // Constructs the URL based on role: /vendor/profile-detail/123 or /customer/profile-detail/123
+  // It defaults to 'customer' if the role isn't 'vendor' or 'admin'
+  const rolePath = (role === 'vendor' || role === 'admin') ? 'vendor' : 'customer';
+  return axiosInstance.get(`/${rolePath}/profile-detail/${id}`);
+};

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useDebounce } from "../context/useDebounce"; // Or wherever your hook is
 
 export default function FilterSideBar({ 
@@ -19,18 +19,25 @@ export default function FilterSideBar({
         setMaxPrice(filters.priceRange.max);
     }, [filters.priceRange.min, filters.priceRange.max]);
      useEffect(() => {
-        // Only call the parent if the debounced value is different from the global state.
-        // This prevents the initial render from causing a loop.
-        if (debouncedMinPrice !== filters.priceRange.min || debouncedMaxPrice !== filters.priceRange.max) {
-            onFilterChange(prevFilters => ({
-                ...prevFilters,
-                priceRange: {
-                    min: debouncedMinPrice,
-                    max: debouncedMaxPrice,
-                }
-            }));
+        console.log(
+  "Debounced price changed:",
+  `min: ${debouncedMinPrice} (${typeof debouncedMinPrice}),`,
+  `max: ${debouncedMaxPrice} (${typeof debouncedMaxPrice})`
+);
+        if (
+          String(debouncedMinPrice) !== String(filters.priceRange.min) ||
+          String(debouncedMaxPrice) !== String(filters.priceRange.max)
+        ) {
+          onFilterChange(filters => ({
+            ...filters,
+            priceRange: {
+              min: debouncedMinPrice,
+              max: debouncedMaxPrice,
+            }
+          }));
         }
-    }, [debouncedMinPrice, debouncedMaxPrice, onFilterChange, filters.priceRange.min, filters.priceRange.max]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debouncedMinPrice, debouncedMaxPrice]);
     const [expandedSections, setExpandedSections] = useState({});
 
     // Checkboxes call onFilterChange directly and immediately
@@ -58,19 +65,23 @@ export default function FilterSideBar({
                     <h3 className="font-semibold mb-3 text-gray-800">Price</h3>
                     <div className="flex items-center mb-3">
                         <input
-                            type="text"
-                            placeholder="Min"
-                            value={minPrice} // Bound to local state for typing
-                            onChange={(e) => setMinPrice(e.target.value)}
-                            className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
+                          type="text"
+                          min="0"
+                          step="1"
+                          placeholder="Min"
+                          value={minPrice}
+                          onChange={e => setMinPrice(e.target.value.replace(/[^0-9.]/g, ""))}
+                          className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
                         />
                         <span>to</span>
                         <input
-                            type="text"
-                            placeholder="Max"
-                            value={maxPrice} // Bound to local state for typing
-                            onChange={(e) => setMaxPrice(e.target.value)}
-                            className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
+                          type="text"
+                          min="0"
+                          step="1"
+                          placeholder="Max"
+                          value={maxPrice}
+                          onChange={e => setMaxPrice(e.target.value.replace(/[^0-9.]/g, ""))}
+                          className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
                         />
                     </div>
                 </div>
