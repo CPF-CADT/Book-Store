@@ -1,234 +1,112 @@
 import { useEffect, useState, useCallback } from "react";
-import { HomeHeader, Footer } from "../components/HeaderFooter"; // Assuming these exist
-import FilterSideBar from "./FilterSideBar.jsx";
-import ProductGrid from "./ProductGrid.jsx";
-import BookListPage from "./SortControls.jsx";
-import { 
-  fetchAllBooks, 
-  fetchAllCategories, 
-  fetchAllAuthorsForFilter, 
-  fetchAllTags 
-} from "../services/api"; // Import your API function
+import { fetchBooks, fetchFilters } from "../services/api";
+import FilterSideBar from "./FilterSideBar";
+import SortControls from "./SortControls";
+import ProductGrid from "./ProductGrid";
+import { Filter, X } from "lucide-react";
+
+const INITIAL_FILTERS = {
+  priceRange: { min: '', max: '' },
+  brand: [],
+  material: [],
+  availability: []
+};
 
 export function Homepage() {
-  // State for the data returned by the API
-  const [pageData, setPageData] = useState({
-    books: [],
-    totalItems: 0,
-    totalPages: 1,
-    currentPage: 1,
-  });
-
-  const [filters, setFilters] = useState({
-    priceRange: { min: '', max: '' },
-    // FIX #4: Use strings for single-select dropdowns
-    categoryId: '',
-    authorId: '',
-    tagId: '',
-    searchQuery: '',
-  });
-const [sortBy, setSortBy] = useState('create_at-DESC');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [books, setBooks] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [filterOptions, setFilterOptions] = useState({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [sortBy, setSortBy] = useState('relevance');
   const [itemsPerPage, setItemsPerPage] = useState(12);
-
- const [dynamicFilterOptions, setDynamicFilterOptions] = useState({
-    categories: [],
-    authors: [],
-    tags: [],
-  });
-
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-// const filterOptions = {
-//     categoryId: [
-//       { value: 1, label: 'Fiction' },
-//       { value: 2, label: 'Science' },
-//       { value: 5, label: 'History' },
-//     ],
-//     authorId: [
-//       { value: 3, label: 'J.K. Rowling' },
-//       { value: 4, label: 'George Orwell' },
-//     ]
-//   };
-   useEffect(() => {
+
+  useEffect(() => {
     const loadFilterOptions = async () => {
       try {
-        const [catRes, authRes, tagRes] = await Promise.all([
-          fetchAllCategories(),
-          fetchAllAuthorsForFilter(),
-          fetchAllTags()
-        ]);
-        
-        setDynamicFilterOptions({
-          categories: catRes.data.categories?.map(c => ({ value: c.id, label: c.name })) || [],
-          authors: authRes.data.authors?.map(a => ({ value: a.id, label: a.name })) || [],
-          tags: tagRes.data.tags?.map(t => ({ value: t.id, label: t.name })) || [],
-        });
+        const data = await fetchFilters();
+        setFilterOptions(data);
       } catch (err) {
+        console.error("Failed to load filter options:", err);
         console.error("Failed to load filter options:", err);
       }
     };
     loadFilterOptions();
-  }, []); 
+  }, []);
 
-  // --- THE MAIN DATA FETCHING LOGIC ---
-   const loadBooks = useCallback(async () => {
+  const loadBooks = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [sortField, sortOrder] = sortBy.split('-');
-      
-      const params = {
-        page: currentPage,
-        limit: itemsPerPage,
-        sortBy: sortField,
-        sortOrder: sortOrder,
-        searchQuery: filters.searchQuery,
-        minPrice: filters.priceRange.min,
-        maxPrice: filters.priceRange.max,
-        // FIX #3: Include tagId and use the correct filter state properties
-        categoryId: filters.categoryId,
-        authorId: filters.authorId,
-        tagId: filters.tagId,
-      };
-      
-      const response = await fetchAllBooks(params);
-      setPageData(response.data);
+      const params = { page: currentPage, limit: itemsPerPage, sort: sortBy, search: searchTerm, ...filters.priceRange, brand: filters.brand.join(','), material: filters.material.join(','), availability: filters.availability.join(',') };
+      const data = await fetchBooks(params);
+      setBooks(data.books || []);
+      setTotalItems(data.total || 0);
     } catch (err) {
-      setError('Failed to load books. Please try again.');
-      console.error('Error loading books:', err);
+      setError('Failed to load books. Please try again later.',err);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, itemsPerPage, filters, sortBy]); // Dependencies for the fetch function
+  }, [currentPage, itemsPerPage, sortBy, searchTerm, filters]);
 
-  // This single useEffect now handles all data loading
-    useEffect(() => {
-    loadBooks();
-  }, [loadBooks]);
+  useEffect(() => { loadBooks(); }, [loadBooks]);
 
-  // --- HANDLER FUNCTIONS ---
-  // These functions update the state, which triggers the useEffect to re-fetch data
+  const handleFilterChange = (newFilters) => { setFilters(newFilters); setCurrentPage(1); };
+  const handleSortChange = (newSort) => { setSortBy(newSort); setCurrentPage(1); };
+  const handleItemsPerPageChange = (newLimit) => { setItemsPerPage(newLimit); setCurrentPage(1); };
+  const handleSearch = (newSearchTerm) => { setSearchTerm(newSearchTerm); setCurrentPage(1); };
 
-const handleFilterChange = useCallback((updater) => {
-    setFilters(prevFilters => {
-      if (typeof updater === 'function') {
-        return updater(prevFilters);
-      }
-      return { ...prevFilters, ...updater };
-    });
-    setCurrentPage(1); // Reset page on filter change
-  }, []); 
-
-   const handleSortChange = (newSortBy) => {
-    setSortBy(newSortBy);
-    setCurrentPage(1);
+  const Pagination = () => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) return null;
+    return (
+      <div className="flex justify-center items-center mt-8 space-x-1 sm:space-x-2">
+        <button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1 || loading} className="px-3 py-2 border rounded disabled:opacity-50 text-sm">Prev</button>
+        <span className="text-sm text-gray-600 px-2">Page {currentPage} of {totalPages}</span>
+        <button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages || loading} className="px-3 py-2 border rounded disabled:opacity-50 text-sm">Next</button>
+      </div>
+    );
   };
-
-  // const handleItemsPerPageChange = (newItemsPerPage) => {
-  //   setItemsPerPage(newItemsPerPage);
-  //   setCurrentPage(1);
-  // };
-  
- const handlePageChange = (newPage) => {
-    // Add boundary checks for safety
-    if (newPage > 0 && newPage <= pageData.totalPages) {
-      setCurrentPage(newPage);
-    }
-  };
-
-  // --- RENDER LOGIC ---
-
-  if (loading && pageData.books.length === 0) { // Show full-page loader only on initial load
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error} <button onClick={loadBooks}>Retry</button></div>;
-  }
-
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <HomeHeader />
-      <main className="flex-1">
-        <div className="flex flex-col lg:flex-row max-w-7xl mx-auto w-full pt-12 pb-8 px-4">
-<FilterSideBar
-            filters={filters}
-            filterOptions={dynamicFilterOptions} 
-            onFilterChange={handleFilterChange}
-          />
-          <section className="flex-1 lg:ml-8 mt-8 lg:mt-0">
-            {/* Sort Controls would be a component here */}
-            <div className="mb-4">
-              <select value={sortBy} onChange={(e) => handleSortChange(e.target.value)}>
-                <option value="create_at-DESC">Newest</option>
-                <option value="price-ASC">Price: Low to High</option>
-                <option value="price-DESC">Price: High to Low</option>
-              </select>
-            </div>
-
-            {loading && <p>Loading...</p>}
-            {error && <p className="text-red-500">{error}</p>}
-            {!loading && !error && (
-              <>
-                {pageData.books.length > 0 ? (
-                  <ProductGrid books={pageData.books} />
-                ) : (
-                  <p>No books found matching your criteria.</p>
-                )}
-
-                {/* Pagination */}
-                 {pageData.totalPages > 1 && (
-                  <div className="flex justify-center items-center mt-8 space-x-2">
-                    {/* Previous Button */}
-                    <button 
-                      onClick={() => handlePageChange(currentPage - 1)} 
-                      // FIX: Consistently use the 'currentPage' state variable
-                      disabled={currentPage === 1}
-                      // FIX: Added Tailwind CSS for better styling and disabled state
-                      className="px-4 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Previous
-                    </button>
-
-                    {/* Numbered Page Buttons */}
-                    {[...Array(pageData.totalPages)].map((_, index) => {
-                      const pageNumber = index + 1;
-                      return (
-                        <button 
-                          key={pageNumber}
-                          onClick={() => handlePageChange(pageNumber)}
-                          // FIX: Consistently use 'currentPage' for styling the active button
-                          className={`hidden md:block px-4 py-2 border rounded-md transition-colors ${
-                            currentPage === pageNumber
-                            ? 'bg-red-500 text-white border-red-500' // Active page style
-                            : 'bg-white text-gray-700 hover:bg-gray-50' // Inactive page style
-                          }`}
-                        >
-                          {pageNumber}
-                        </button>
-                      );
-                    })}
-
-                    {/* Next Button */}
-                    <button 
-                      onClick={() => handlePageChange(currentPage + 1)} 
-                      // FIX: Consistently use 'currentPage' state for the disabled check
-                      disabled={currentPage === pageData.totalPages}
-                      className="px-4 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </section>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="lg:hidden flex justify-end mb-4">
+          <button onClick={() => setIsFilterOpen(true)} className="inline-flex items-center gap-2 bg-white px-4 py-2 border border-gray-300 rounded-md shadow-sm font-medium text-gray-700 hover:bg-gray-50">
+            <Filter size={20} /> Show Filters
+          </button>
         </div>
-      </main>
-      <Footer />
+        <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
+          <FilterSideBar filters={filters} filterOptions={filterOptions} onFilterChange={handleFilterChange} />
+        </div>
+        {isFilterOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setIsFilterOpen(false)}>
+            <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-xl p-4 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4 pb-4 border-b">
+                <h2 className="text-xl font-bold">Filters</h2>
+                <button onClick={() => setIsFilterOpen(false)}><X size={24} /></button>
+              </div>
+              <FilterSideBar filters={filters} filterOptions={filterOptions} onFilterChange={handleFilterChange} />
+            </div>
+          </div>
+        )}
+        <section className="flex-1 min-w-0">
+          <SortControls sortBy={sortBy} itemsPerPage={itemsPerPage} totalItems={totalItems} currentPage={currentPage} searchTerm={searchTerm} viewMode={viewMode} loading={loading} onSortChange={handleSortChange} onItemsPerPageChange={handleItemsPerPageChange} onSearch={handleSearch} onViewModeChange={setViewMode} />
+          {error ? (
+            <div className="text-center py-20 text-red-500 bg-red-50 rounded-lg">{error}</div>
+          ) : (
+            <>
+              <ProductGrid books={books} loading={loading} viewMode={viewMode} />
+              <Pagination />
+            </>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

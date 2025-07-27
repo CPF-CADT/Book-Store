@@ -1,5 +1,5 @@
 // --- START OF FILE BookauthorsDb.js ---
-
+// server/module/BookauthorsDb.js
 import { DataTypes } from "sequelize";
 import { sequelizes } from "../utils/database.js";
 import { Books } from "./BookDb.js";
