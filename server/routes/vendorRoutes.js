@@ -4,7 +4,11 @@ import {
   getUserProfileDetail,
   login,
   VendorSignUp,
+  handleGetAllUsers,
+  handleAdminCreateUser,
+  
 } from "../controllers/userControllers.js";
+import { handleAdminDeleteUser } from "../Repositories/sqlUserRepositories.js";
 import * as bookControllers from "../controllers/bookControllers.js";
 import * as authorControllers from "../controllers/authorController.js";
 import { isAuthenticated, isAuthorized } from "../middleware/authMiddleware.js";
@@ -19,6 +23,11 @@ vendor.get(
 vendor.put("/profile-detail/:id", Updateprofile);
 vendor.post("/sign-up", VendorSignUp);
 vendor.post("/login", login);
+
+vendor.get('/users', handleGetAllUsers);
+vendor.post('/users', handleAdminCreateUser);
+vendor.put('/users/:id', getUserProfileDetail);
+vendor.delete('/users/:id', handleAdminDeleteUser);
 // book
 // vendor.get("/:userId/book/:bookId", bookControllers.getbookdetail);
 // vendor.get("/:userId/book", bookControllers.handleGetAllbooks);

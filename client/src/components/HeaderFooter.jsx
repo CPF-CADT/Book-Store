@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Menu, X, User, ShoppingBag, Heart } from "lucide-react";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import { useAuth } from '../context/AuthContext'; 
 import { FaUser, FaShoppingBag, FaHeart, FaSignInAlt, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from "react-router-dom";
-import { NavLink } from 'react-router-dom';
+// import { NavLink } from 'react-router-dom';
 // import HeaderFooter from './components/HeaderFooter';
 
 

@@ -1,4 +1,6 @@
 import * as userRespositories from "../Repositories/sqlUserRepositories.js";
+import bcrypt from "bcrypt";
+import { Users } from "../module/usersDb.js";
 import jwt from "jsonwebtoken";
 export async function CustomerSignUp(req, res) {
   try {
@@ -66,4 +68,63 @@ export async function Updateprofile(req,res) {
     res.status(500).json({message :"Server error"});
   }
   
+}
+export async function handleGetAllUsers(req, res) {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
+    const { searchQuery, role } = req.query;
+
+    const where = {};
+    if (searchQuery) {
+      where[Op.or] = [
+        { first_name: { [Op.like]: `%${searchQuery}%` } },
+        { last_name: { [Op.like]: `%${searchQuery}%` } },
+        { email: { [Op.like]: `%${searchQuery}%` } },
+      ];
+    }
+    if (role) {
+      where.role = role;
+    }
+
+    const { count, rows } = await Users.findAndCountAll({
+      where,
+      limit,
+      offset,
+      order: [['created_at', 'DESC']],
+      attributes: { exclude: ['password_hash'] }, // Never send password hashes
+    });
+
+    res.status(200).json({
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+      users: rows,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users." });
+  }
+}
+export async function handleAdminCreateUser(req, res) {
+  const { first_name, last_name, email, password, role ,phone} = req.body;
+  try {
+    // Check if user already exists
+    const existingUser = await Users.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ message: "Email already in use." });
+    }
+    
+    const password_hash = await bcrypt.hash(password, 10);
+    const newUser = await Users.create({ first_name, last_name, email, password_hash, role,phone });
+    
+    // Don't send back the password hash
+    const userJson = newUser.toJSON();
+    delete userJson.password_hash;
+    
+    res.status(201).json(userJson);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error creating user." });
+  }
 }

@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+// import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "./layouts/MainLayout";
 import { AuthLayout } from "./layouts/AuthLayout";
-import { Homepage } from "./components/Homepage";
+// import { Homepage } from "./components/Homepage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { AccountDetail } from "./pages/AccountDetail";
@@ -9,7 +9,7 @@ import { AboutPage } from "./pages/AboutPage";
 import { BookDetailPage } from "./pages/BookDetailPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import React from 'react'; // Needed for class components
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter,  Route, Navigate } from "react-router-dom";
 import { UserProfile } from './pages/UserProfile';
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
@@ -19,7 +19,7 @@ import { useAuth } from "./context/AuthContext";
 import { Homepage } from './components/Homepage';
 import { AdminDashboard } from './pages/admindashborad';
 import { NotFound } from './pages/NotFound'; 
-import { BookDetailPage } from './pages/BookDetailPage';
+// import { BookDetailPage } from './pages/BookDetailPage';
 import { AboutUsPage } from './pages/AboutUsPage.jsx';
 import { ContactPage } from './pages/ContactPage.jsx';
 import { BlogDetailPage } from './pages/BlogDetailPage.jsx';
