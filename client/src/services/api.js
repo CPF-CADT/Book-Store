@@ -1,4 +1,3 @@
-// client/src/services/api.js
 import axios from 'axios';
 const API_URL = 'http://localhost:3001/api';
 const api = axios.create({ baseURL: API_URL });
@@ -32,7 +31,8 @@ export const fetchBookById = async (bookId) => {
   try {
     const response = await api.get(`/books/${bookId}`);
     return response.data;
-  } catch (error) {
+  } catch (error)
+ {
     console.error(`API Error: Failed to fetch book ${bookId}`, error);
     throw error;
   }

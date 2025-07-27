@@ -1,4 +1,3 @@
-// client/src/components/Homepage.jsx
 import { useEffect, useState, useCallback } from "react";
 import { fetchBooks, fetchFilters } from "../services/api";
 import FilterSideBar from "./FilterSideBar";
@@ -81,11 +80,9 @@ export function Homepage() {
             <Filter size={20} /> Show Filters
           </button>
         </div>
-
         <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
           <FilterSideBar filters={filters} filterOptions={filterOptions} onFilterChange={handleFilterChange} />
         </div>
-
         {isFilterOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setIsFilterOpen(false)}>
             <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-xl p-4 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -97,7 +94,6 @@ export function Homepage() {
             </div>
           </div>
         )}
-
         <section className="flex-1 min-w-0">
           <SortControls sortBy={sortBy} itemsPerPage={itemsPerPage} totalItems={totalItems} currentPage={currentPage} searchTerm={searchTerm} viewMode={viewMode} loading={loading} onSortChange={handleSortChange} onItemsPerPageChange={handleItemsPerPageChange} onSearch={handleSearch} onViewModeChange={setViewMode} />
           {error ? (
