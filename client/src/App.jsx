@@ -1,3 +1,13 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { MainLayout } from "./layouts/MainLayout";
+import { AuthLayout } from "./layouts/AuthLayout";
+import { Homepage } from "./components/Homepage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { AccountDetail } from "./pages/AccountDetail";
+import { AboutPage } from "./pages/AboutPage";
+import { BookDetailPage } from "./pages/BookDetailPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import React from 'react'; // Needed for class components
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UserProfile } from './pages/UserProfile';
@@ -49,46 +59,21 @@ function ProtectedRoute({ allowedRoles, children }) {
 // --- Main App Component with Improved Routing ---
 function App() {
   return (
-      <ErrorBoundary>
-        <Routes>
-          {/* Public routes that use the main layout */}
-          {/* <Route element={<HomePageLayout />}> */}
-             <Route path="/" element={<HomePageLayout />}>
-             <Route index element={<Homepage />} /> 
-              <Route path="book/:id" element={<BookDetailPage />} /> 
-          </Route>
-          
-          {/* Auth routes without the main layout */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          
-          {/* Protected Routes */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                {/* For consistency, protected pages can also use a layout */}
-                <HomePageLayout>
-                  <UserProfile />
-                </HomePageLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'vendor']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Catch-all 404 Route */}
-          <Route path="*" element={< NotFound />} />
-        </Routes>
-      </ErrorBoundary>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/book/:bookId" element={<BookDetailPage />} />
+          <Route path="/account-details" element={<AccountDetail />} />
+        </Route>
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
 export default App;

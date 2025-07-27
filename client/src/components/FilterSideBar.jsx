@@ -1,165 +1,161 @@
+// client/src/components/FilterSideBar.jsx
 import { useState, useEffect } from "react";
-import { useDebounce } from "../context/useDebounce"; // Or wherever your hook is
-function FilterDropdown({ label, value, options, onChange }) {
+
+const INITIAL_FILTERS = {
+  priceRange: { min: '', max: '' },
+  productType: [],
+  availability: [],
+  brand: [],
+  color: [],
+  material: []
+};
+
+export default function FilterSideBar({ filters, filterOptions, onFilterChange }) {
+  const [expandedSections, setExpandedSections] = useState({});
+
+  useEffect(() => {
+    // Initialize expanded sections state based on available filter options
+    if (filterOptions) {
+      const initialSections = Object.keys(filterOptions).reduce((acc, key) => {
+        acc[key] = false; // Start all sections collapsed
+        return acc;
+      }, {});
+      setExpandedSections(initialSections);
+    }
+  }, [filterOptions]);
+
+  const handlePriceChange = (field, value) => {
+    onFilterChange({
+      ...filters,
+      priceRange: {
+        ...filters.priceRange,
+        [field]: value
+      }
+    });
+  };
+
+  const handleCheckBoxChange = (category, value, checked) => {
+    const currentValues = filters[category] || [];
+    const newValues = checked
+      ? [...currentValues, value]
+      : currentValues.filter(v => v !== value);
+    
+    onFilterChange({
+      ...filters,
+      [category]: newValues
+    });
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const clearFilters = () => {
+    onFilterChange(INITIAL_FILTERS);
+  };
+
+  const hasActiveFilters = () => {
+    return filters.priceRange.min ||
+           filters.priceRange.max ||
+           Object.entries(filters).some(([key, value]) => 
+             key !== 'priceRange' && Array.isArray(value) && value.length > 0
+           );
+  };
+  
+  // Helper to format category names for display
+  const formatCategoryName = (name) => {
+      return name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+  }
+
   return (
-    <div>
-      <label className="font-semibold mb-2 text-gray-800 block">{label}</label>
-      <select
-        value={value}
-        onChange={onChange}
-        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 bg-white"
-      >
-        <option value="">All {label}</option>
-        {options.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-export default function FilterSideBar({ 
-  filters = { priceRange: { min: '', max: '' }, searchQuery: '' }, 
-  filterOptions = { categories: [], authors: [], tags: [] }, // Provide default arrays
-  onFilterChange = () => {} 
-})  {
-    // Local state ONLY for the text inputs to enable debouncing
-    const [minPrice, setMinPrice] = useState(filters.priceRange.min);
-    const [maxPrice, setMaxPrice] = useState(filters.priceRange.max);
-    const [searchTerm, setSearchTerm] = useState(filters.searchQuery);
-    const debouncedMinPrice = useDebounce(minPrice, 500);
-    const debouncedMaxPrice = useDebounce(maxPrice, 500);
-     const debouncedSearchTerm = useDebounce(searchTerm, 500);
+    <aside className="w-64 hidden lg:block pr-8">
+      <div className="bg-white rounded p-6 shadow-sm border">
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+            {hasActiveFilters() && (
+                <button
+                onClick={clearFilters}
+                className="text-red-500 text-sm font-medium hover:underline"
+                >
+                Clear all
+                </button>
+            )}
+        </div>
 
-    // This useEffect handles the debounced price changes
-   useEffect(() => {
-        setMinPrice(filters.priceRange.min);
-        setMaxPrice(filters.priceRange.max);
-        setSearchTerm(filters.searchQuery);
-    }, [filters.priceRange.min, filters.priceRange.max, filters.searchQuery]);
-     useEffect(() => {
-        // Only update if the debounced value is different from the global state
-        if (debouncedMinPrice !== filters.priceRange.min || debouncedMaxPrice !== filters.priceRange.max) {
-            onFilterChange(prevFilters => ({
-                ...prevFilters,
-                priceRange: { min: debouncedMinPrice, max: debouncedMaxPrice }
-            }));
-        }
-    }, [debouncedMinPrice, debouncedMaxPrice, filters.priceRange, onFilterChange]);
+        <div className="mb-6">
+          <h3 className="font-semibold mb-3 text-gray-800">Price</h3>
+          <div className="flex items-center space-x-2">
+            <input
+              type="number"
+              placeholder="Min"
+              value={filters.priceRange.min}
+              onChange={(e) => handlePriceChange('min', e.target.value)}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              min="0"
+            />
+            <span className="text-gray-500">-</span>
+            <input
+              type="number"
+              placeholder="Max"
+              value={filters.priceRange.max}
+              onChange={(e) => handlePriceChange('max', e.target.value)}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              min="0"
+            />
+          </div>
+        </div>
 
-    // Effect for debounced search term changes
-    useEffect(() => {
-        if (debouncedSearchTerm !== filters.searchQuery) {
-            onFilterChange(prevFilters => ({
-                ...prevFilters,
-                searchQuery: debouncedSearchTerm
-            }));
-        }
-    }, [debouncedSearchTerm, filters.searchQuery, onFilterChange]);
-
-    const [expandedSections, setExpandedSections] = useState({});
-
-    const handleCheckBoxChange = (category, value, isChecked) => {
-        onFilterChange(prevFilters => {
-            const currentValues = prevFilters[category] || [];
-            const newValues = isChecked
-                ? [...currentValues, value]
-                : currentValues.filter(v => v !== value);
-            return { ...prevFilters, [category]: newValues };
-        });
-    };
-
-    const toggleSection = (section) => {
-        setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
-    };
-
-     const handleDropdownChange = (filterKey, value) => {
-        onFilterChange(prevFilters => ({
-            ...prevFilters,
-            [filterKey]: value
-        }));
-    };
-    // We do NOT need a localFilters state or an applyFilters button for this pattern.
-
-    return (
-        <aside className="w-64 hidden lg:block pr-8">
-            <div className="bg-white rounded p-6 shadow-sm border">
-                {/* Price Filter */} <div>
-                    <label htmlFor="search-filter" className="font-semibold mb-3 text-gray-800 block">Search by Title</label>
-                    <div className="relative">
-                        <input
-                            id="search-filter"
-                            type="text"
-                            placeholder="e.g., Clean Code"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-                        />
-                         {/* Optional: Add a search icon */}
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                {/* --- NEW DROPDOWN FILTERS --- */}
-                <div className="border-t pt-6 space-y-4">
-                  <FilterDropdown
-                    label="Categories"
-                    value={filters.categoryId}
-                    options={filterOptions.categories}
-                    onChange={(e) => handleDropdownChange('categoryId', e.target.value)}
-                  />
-                  <FilterDropdown
-                    label="Authors"
-                    value={filters.authorId}
-                    options={filterOptions.authors}
-                    onChange={(e) => handleDropdownChange('authorId', e.target.value)}
-                  />
-                  <FilterDropdown
-                    label="Tags"
-                    value={filters.tagId}
-                    options={filterOptions.tags}
-                    onChange={(e) => handleDropdownChange('tagId', e.target.value)}
-                  />
-                </div>
-                <div className="mb-6">
-                    <h3 className="font-semibold mb-3 text-gray-800">Price</h3>
-                    <div className="flex items-center mb-3">
-                        <input
-                          type="text"
-                          min="0"
-                          step="1"
-                          placeholder="Min"
-                          value={minPrice}
-                          onChange={e => setMinPrice(e.target.value.replace(/[^0-9.]/g, ""))}
-                          className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
-                        />
-                        <span>to</span>
-                        <input
-                          type="text"
-                          min="0"
-                          step="1"
-                          placeholder="Max"
-                          value={maxPrice}
-                          onChange={e => setMaxPrice(e.target.value.replace(/[^0-9.]/g, ""))}
-                          className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
-                        />
-                    </div>
-                </div>
-
-                {/* Dynamic Filter Sections */}
-                {/* <div className="border-t pt-4">
-                  {Object.entries(filterOptions).map(([category, options]) => (
-                    // ... your checkbox mapping logic is here ...
-                    // It should use handleCheckBoxChange
+        <div className="border-t pt-4">
+          {Object.entries(filterOptions).map(([category, options]) => (
+            <div key={category} className="mb-2">
+              <button
+                className="flex justify-between items-center w-full cursor-pointer py-2 hover:bg-gray-50 rounded px-2 text-left"
+                onClick={() => toggleSection(category)}
+                aria-expanded={expandedSections[category]}
+              >
+                <span className="font-medium capitalize text-gray-700">
+                  {formatCategoryName(category)}
+                  {filters[category]?.length > 0 && (
+                    <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">
+                      {filters[category].length}
+                    </span>
+                  )}
+                </span>
+                <span className="text-gray-500 font-bold text-lg transition-transform transform" style={{ transform: expandedSections[category] ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+                    {expandedSections[category] ? '−' : '+'}
+                </span>
+              </button>
+              
+              {expandedSections[category] && (
+                <div className="mt-2 ml-4 pl-2 border-l-2 border-gray-100 space-y-2">
+                  {options.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center space-x-2 cursor-pointer text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filters[category]?.includes(option.value) || false}
+                        onChange={(e) => handleCheckBoxChange(category, option.value, e.target.checked)}
+                        className="rounded border-gray-300 text-red-500 focus:ring-red-500"
+                      />
+                      <span className="text-gray-600">
+                        {option.label}
+                        {option.count && (
+                          <span className="text-gray-400 ml-1">({option.count})</span>
+                        )}
+                      </span>
+                    </label>
                   ))}
-                </div> */}
-
-                {/* NO "Apply Filters" button is needed for this UX pattern */}
+                </div>
+              )}
             </div>
-        </aside>
-    );
+          ))}
+        </div>
+      </div>
+    </aside>
+  );
 }

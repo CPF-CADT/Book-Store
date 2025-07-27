@@ -1,45 +1,46 @@
-// import React from "react";
+// src/components/ProductGrid.jsx
 import ProductCard from "./ProductCard";
 
-const ProductGrid = ({ books, loading = false}) => {
-    if (loading){
-        return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                {[...Array(6)].map((_, index) => (
-                    <div key={index} className="bg-white rounded-lg p-6 animate-pulse">
-                        <div className="w-full h-56 bg-gray-200 rounded mb-4"></div>
-                        <div className="space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                            <div className="h-8 bg-gray-200 rounded w-full mt-4"></div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    }
+const ProductGrid = ({ books, loading = false, viewMode = "grid" }) => {
+  const skeletonCount = 12;
 
-    if (!books || books.length === 0){
-        return ( 
-            <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
-                <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No books found</h3>
-                <p className="text-gray-500">Try adjusting your filters or search criteria</p>
-            </div>
-        )
-    }
-
+  if (loading) {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {books.map((book) => (
-                <ProductCard key={book.id} book={book} />
-            ))}
-        </div>
+      <div className={`grid gap-8 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+        {[...Array(skeletonCount)].map((_, index) => (
+          <div key={index} className="bg-white rounded-lg p-4 animate-pulse border border-gray-100">
+            <div className="w-full h-56 bg-gray-200 rounded mb-4"></div>
+            <div className="space-y-3">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4 mt-2"></div>
+              <div className="h-10 bg-gray-200 rounded w-full mt-4"></div>
+            </div>
+          </div>
+        ))}
+      </div>
     );
-}
+  }
+
+  if (!books || books.length === 0) {
+    return (
+      <div className="text-center py-20 bg-gray-50 rounded-lg">
+        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <h3 className="mt-2 text-lg font-medium text-gray-900">No Books Found</h3>
+        <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`grid gap-8 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+      {books.map((book) => (
+        <ProductCard key={book.id} book={book} />
+      ))}
+    </div>
+  );
+};
+
 export default ProductGrid;
