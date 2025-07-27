@@ -1,15 +1,5 @@
-// import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { MainLayout } from "./layouts/MainLayout";
-import { AuthLayout } from "./layouts/AuthLayout";
-// import { Homepage } from "./components/Homepage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
-import { AccountDetail } from "./pages/AccountDetail";
-import { AboutPage } from "./pages/AboutPage";
-import { BookDetailPage } from "./pages/BookDetailPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
 import React from 'react'; // Needed for class components
-import { BrowserRouter,  Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UserProfile } from './pages/UserProfile';
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
@@ -19,12 +9,18 @@ import { useAuth } from "./context/AuthContext";
 import { Homepage } from './components/Homepage';
 import { AdminDashboard } from './pages/admindashborad';
 import { NotFound } from './pages/NotFound'; 
-// import { BookDetailPage } from './pages/BookDetailPage';
+import { BookDetailPage } from './pages/BookDetailPage';
 import { AboutUsPage } from './pages/AboutUsPage.jsx';
 import { ContactPage } from './pages/ContactPage.jsx';
 import { BlogDetailPage } from './pages/BlogDetailPage.jsx';
 import { BlogListPage } from './pages/BlogListPage.jsx';
 import { AdminLayout } from './components/admin/AdminLayout.jsx';
+import { AdminUsersPage } from './pages/AdminUsersPage.jsx';
+import { AdminBooksPage } from './pages/AdminBooksPage.jsx';
+import { AdminCategoriesPage } from './pages/AdminCategoriesPage.jsx';
+import { AdminAuthorsPage } from './pages/AdminAuthorsPage.jsx';
+import { AdminTagsPage } from './pages/AdminTagsPage.jsx';
+import { AdminBlogPage } from './pages/AdminBlogPage.jsx';
 // import { Homepage } from './components/Homepage';
 // import FilterSideBar from "./components/FilterSideBar";
 class ErrorBoundary extends React.Component {
@@ -106,8 +102,13 @@ function App() {
           >
             {/* These routes are now relative to the parent "/" path */}
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="admin/users" element={<AdminUsersPage />} />
             {/* Example: Your future book management page */}
-            <Route path="admin/books" element={<div>Book Management Page</div>} /> 
+            <Route path="/admin/books" element={<AdminBooksPage />}/> 
+            <Route path="admin/categories" element={<AdminCategoriesPage />} />
+             <Route path="admin/authors" element={<AdminAuthorsPage />} />
+             <Route path="admin/tags" element={<AdminTagsPage />} />
+             <Route path="admin/blog" element={<AdminBlogPage />} />
             {/* Add all your other admin-specific pages here */}
             {/* <Route path="admin/users" element={<AdminUsersPage />} /> */}
           </Route>
@@ -121,4 +122,5 @@ function App() {
       </ErrorBoundary>
   );
 }
+
 export default App;

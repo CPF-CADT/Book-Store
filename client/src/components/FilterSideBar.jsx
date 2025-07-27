@@ -1,161 +1,172 @@
-// client/src/components/FilterSideBar.jsx
-import { useState, useEffect } from "react";
+import React from 'react'; // Simplified imports
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { LayoutDashboard, X } from "lucide-react";
 
-const INITIAL_FILTERS = {
-  priceRange: { min: '', max: '' },
-  productType: [],
-  availability: [],
-  brand: [],
-  color: [],
-  material: []
-};
+// --- Reusable Dropdown Component ---
+// This sub-component helps keep the main return statement clean.
+function FilterDropdown({ label, value, options, onChange }) {
+  return (
+    <div>
+      <label className="font-semibold mb-2 text-gray-800 block">{label}</label>
+      <select
+        value={value}
+        onChange={onChange}
+        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 bg-white"
+      >
+        <option value="">All {label}</option>
+        {/* Safely map over options, even if it's undefined initially */}
+        {options && options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
-export default function FilterSideBar({ filters, filterOptions, onFilterChange }) {
-  const [expandedSections, setExpandedSections] = useState({});
 
-  useEffect(() => {
-    // Initialize expanded sections state based on available filter options
-    if (filterOptions) {
-      const initialSections = Object.keys(filterOptions).reduce((acc, key) => {
-        acc[key] = false; // Start all sections collapsed
-        return acc;
-      }, {});
-      setExpandedSections(initialSections);
-    }
-  }, [filterOptions]);
+// --- Main FilterSideBar Component ---
+export default function FilterSideBar({
+  filters,
+  filterOptions,
+  onFilterChange,
+  isMobileOpen,   // Prop to control visibility on mobile
+  onMobileClose,  // Prop to handle closing on mobile
+}) {
+  const { user } = useAuth();
+
+  // --- Handler functions to update the parent's state ---
+  // No local state is needed here, making the component simpler and less prone to bugs.
+  // The parent (Homepage) is the single source of truth for the filter values.
 
   const handlePriceChange = (field, value) => {
-    onFilterChange({
-      ...filters,
-      priceRange: {
-        ...filters.priceRange,
-        [field]: value
-      }
-    });
+    // Sanitize input to only allow numbers and decimals
+    const sanitizedValue = value.replace(/[^0-9.]/g, '');
+    onFilterChange({ ...filters, priceRange: { ...filters.priceRange, [field]: sanitizedValue } });
   };
 
-  const handleCheckBoxChange = (category, value, checked) => {
-    const currentValues = filters[category] || [];
-    const newValues = checked
-      ? [...currentValues, value]
-      : currentValues.filter(v => v !== value);
-    
-    onFilterChange({
-      ...filters,
-      [category]: newValues
-    });
+  const handleSearchChange = (value) => {
+    onFilterChange({ ...filters, searchQuery: value });
   };
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  const handleDropdownChange = (filterKey, value) => {
+    onFilterChange({ ...filters, [filterKey]: value });
   };
 
-  const clearFilters = () => {
-    onFilterChange(INITIAL_FILTERS);
-  };
+  // --- The shared JSX for both desktop and mobile views ---
+  const sidebarContent = (
+    <div className="bg-white p-6 h-full shadow-lg lg:shadow-sm lg:border space-y-6">
 
-  const hasActiveFilters = () => {
-    return filters.priceRange.min ||
-           filters.priceRange.max ||
-           Object.entries(filters).some(([key, value]) => 
-             key !== 'priceRange' && Array.isArray(value) && value.length > 0
-           );
-  };
-  
-  // Helper to format category names for display
-  const formatCategoryName = (name) => {
-      return name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-  }
+      {/* Mobile-only Header with a "Close" button */}
+      <div className="flex justify-between items-center lg:hidden border-b -mx-6 -mt-6 px-6 pt-6 pb-4">
+        <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+        <button onClick={onMobileClose} className="p-2 -mr-2 text-gray-500 hover:text-red-500">
+          <X size={24} />
+        </button>
+      </div>
 
-  return (
-    <aside className="w-64 hidden lg:block pr-8">
-      <div className="bg-white rounded p-6 shadow-sm border">
-        <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Filters</h2>
-            {hasActiveFilters() && (
-                <button
-                onClick={clearFilters}
-                className="text-red-500 text-sm font-medium hover:underline"
-                >
-                Clear all
-                </button>
-            )}
+      {/* "Go to Dashboard" button for Admins/Vendors */}
+      {user && (user.role === 'admin' || user.role === 'vendor') && (
+        <div className="pb-4 border-b">
+          <Link
+            to="/dashboard"
+            className="w-full flex items-center justify-center bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+          >
+            <LayoutDashboard size={16} className="mr-2" />
+            Go to Dashboard
+          </Link>
         </div>
+      )}
 
-        <div className="mb-6">
-          <h3 className="font-semibold mb-3 text-gray-800">Price</h3>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              placeholder="Min"
-              value={filters.priceRange.min}
-              onChange={(e) => handlePriceChange('min', e.target.value)}
-              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-              min="0"
-            />
-            <span className="text-gray-500">-</span>
-            <input
-              type="number"
-              placeholder="Max"
-              value={filters.priceRange.max}
-              onChange={(e) => handlePriceChange('max', e.target.value)}
-              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-              min="0"
-            />
-          </div>
-        </div>
+      {/* Search Bar */}
+      <div>
+        <label htmlFor="search-filter" className="font-semibold mb-2 text-gray-800 block">Search</label>
+        <input
+          id="search-filter"
+          type="text"
+          placeholder="e.g., The Great Gatsby"
+          value={filters.searchQuery || ''}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
+        />
+      </div>
 
-        <div className="border-t pt-4">
-          {Object.entries(filterOptions).map(([category, options]) => (
-            <div key={category} className="mb-2">
-              <button
-                className="flex justify-between items-center w-full cursor-pointer py-2 hover:bg-gray-50 rounded px-2 text-left"
-                onClick={() => toggleSection(category)}
-                aria-expanded={expandedSections[category]}
-              >
-                <span className="font-medium capitalize text-gray-700">
-                  {formatCategoryName(category)}
-                  {filters[category]?.length > 0 && (
-                    <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">
-                      {filters[category].length}
-                    </span>
-                  )}
-                </span>
-                <span className="text-gray-500 font-bold text-lg transition-transform transform" style={{ transform: expandedSections[category] ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
-                    {expandedSections[category] ? '−' : '+'}
-                </span>
-              </button>
-              
-              {expandedSections[category] && (
-                <div className="mt-2 ml-4 pl-2 border-l-2 border-gray-100 space-y-2">
-                  {options.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex items-center space-x-2 cursor-pointer text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={filters[category]?.includes(option.value) || false}
-                        onChange={(e) => handleCheckBoxChange(category, option.value, e.target.checked)}
-                        className="rounded border-gray-300 text-red-500 focus:ring-red-500"
-                      />
-                      <span className="text-gray-600">
-                        {option.label}
-                        {option.count && (
-                          <span className="text-gray-400 ml-1">({option.count})</span>
-                        )}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+      {/* Dynamic Dropdown Filters */}
+      <div className="border-t pt-6 space-y-4">
+        <FilterDropdown
+          label="Category"
+          value={filters.categoryId || ''}
+          options={filterOptions.categories}
+          onChange={(e) => handleDropdownChange('categoryId', e.target.value)}
+        />
+        <FilterDropdown
+          label="Author"
+          value={filters.authorId || ''}
+          options={filterOptions.authors}
+          onChange={(e) => handleDropdownChange('authorId', e.target.value)}
+        />
+        <FilterDropdown
+          label="Tag"
+          value={filters.tagId || ''}
+          options={filterOptions.tags}
+          onChange={(e) => handleDropdownChange('tagId', e.target.value)}
+        />
+      </div>
+
+      {/* Price Filter */}
+      <div className="border-t pt-6">
+        <h3 className="font-semibold mb-3 text-gray-800">Price Range</h3>
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            placeholder="Min"
+            value={filters.priceRange.min || ''}
+            onChange={(e) => handlePriceChange('min', e.target.value)}
+            className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-center"
+          />
+          <span className="text-gray-500">to</span>
+          <input
+            type="text"
+            placeholder="Max"
+            value={filters.priceRange.max || ''}
+            onChange={(e) => handlePriceChange('max', e.target.value)}
+            className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-center"
+          />
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* --- Desktop: Static Sidebar --- */}
+      <aside className="w-64 hidden lg:block pr-8">
+        {sidebarContent}
+      </aside>
+      
+      {/* --- Mobile: Slide-in Drawer --- */}
+      
+      {/* 1. The Overlay (darkens the background) */}
+      <div
+        className={`fixed inset-0 z-40 transition-opacity duration-300 lg:hidden ${
+          isMobileOpen ? 'bg-black bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
+        }`}
+        onClick={onMobileClose} // Closes the drawer when clicked
+      >
+      </div>
+
+      {/* 2. The Drawer Content */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-80 max-w-full transform transition-transform duration-300 ease-in-out lg:hidden ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-full overflow-y-auto">
+            {sidebarContent}
+        </div>
+      </aside>
+    </>
   );
 }
