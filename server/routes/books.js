@@ -1,10 +1,40 @@
-import express from 'express';
-import { getAllBooks, getBookById, getFilterOptions } from '../controllers/bookController.js';
+import { Router } from "express";
+import {
+  handleGetAllbooks,
+  getbookdetail,
+  createBook,
+  updateBook,
+  deleteBooks
+} from '../controllers/bookControllers.js';
+import { isAuthenticated, isAuthorized } from "../middleware/authMiddleware.js";
 
-const router = express.Router();
+const bookRoutes = Router();
 
-router.get('/', getAllBooks);
-router.get('/filters', getFilterOptions);
-router.get('/:id', getBookById);
+// For anyone 
+bookRoutes.get('/', handleGetAllbooks);
+bookRoutes.get('/:bookId', getbookdetail);
 
-export default router;
+
+// For vendors and admins
+
+bookRoutes.post(
+  '/:userId',
+  isAuthenticated,
+  isAuthorized([ 'vendor']),
+  createBook
+);
+bookRoutes.patch(
+  '/:userId/:bookId',
+  isAuthenticated,
+  isAuthorized(['admin', 'vendor']),
+  updateBook
+);
+bookRoutes.delete(
+  '/:userId/:ids',
+  isAuthenticated,
+  isAuthorized(['admin', 'vendor']),
+  deleteBooks
+);
+
+
+export default bookRoutes;

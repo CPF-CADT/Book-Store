@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Menu, X, User, ShoppingBag, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // --- Header for Login/Register pages ---
 export function LoginHeader() {
@@ -25,7 +26,12 @@ export function LoginHeader() {
             <NavLink to="/" className={({isActive}) => `text-gray-600 hover:text-red-500 uppercase transition-colors ${isActive ? 'text-red-500' : ''}`}>Books</NavLink>
           </nav>
 
-          <button className="md:hidden text-gray-600 hover:text-red-500" onClick={toggleMenu} aria-label="Toggle menu">
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden text-gray-600 hover:text-red-500 transition-colors"
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>

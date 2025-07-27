@@ -33,6 +33,7 @@ export function Homepage() {
         setFilterOptions(data);
       } catch (err) {
         console.error("Failed to load filter options:", err);
+        console.error("Failed to load filter options:", err);
       }
     };
     loadFilterOptions();
@@ -109,3 +110,4 @@ export function Homepage() {
     </div>
   );
 }
+

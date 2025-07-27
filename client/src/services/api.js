@@ -1,58 +1,76 @@
-//service/api.js
-import axios from 'axios';
-const API_URL = 'http://localhost:3000/api';
-const api = axios.create({ baseURL: API_URL });
+import axios from "axios";
 
-export const fetchFilters = async () => {
-  try {
-    const response = await api.get('/books/filters');
-    return response.data;
-  } catch (error) {
-    console.error("API Error: Failed to fetch filters", error);
-    throw error;
-  }
-};
+const API_BASE_URL = "http://localhost:4000/api";
 
-export const fetchBooks = async (params) => {
-  try {
-    const queryParams = { ...params };
-    if (queryParams.availability) {
-      queryParams.status = queryParams.availability;
-      delete queryParams.availability;
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    const response = await api.get('/books', { params: queryParams });
-    return response.data;
-  } catch (error) {
-    console.error("API Error: Failed to fetch books", error);
-    throw error;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
+
+export const registerUser = (userData) => {
+  return axiosInstance.post("/user/sign-up", userData);
+};
+export const updateUserProfile = (id, role = "customer", profileData) => {
+  return axiosInstance.put(`/${role}/profile-detail/${id}`, profileData);
 };
 
-export const fetchBookById = async (bookId) => {
-  try {
-    const response = await api.get(`/books/${bookId}`);
-    return response.data;
-  } catch (error)
- {
-    console.error(`API Error: Failed to fetch book ${bookId}`, error);
-    throw error;
-  }
+export const loginUser = (credentials) => {
+  return axiosInstance.post("/user/login", credentials);
 };
 
-export const loginUser = async (credentials) => {
-  try {
-    const response = await api.post('/auth/login', credentials);
-    return response.data;
-  } catch (error) {
-    return error.response?.data || { success: false, message: 'Network error.' };
-  }
+export const fetchUserProfile = (id, role = "customer") => {
+
+  return axiosInstance.get(`/${role}/profile-detail/${id}`);
 };
 
-export const registerUser = async (userData) => {
-  try {
-    const response = await api.post('/auth/register', userData);
-    return response.data;
-  } catch (error) {
-    return error.response?.data || { success: false, message: 'Network error.' };
-  }
+export const fetchAllBooks = (params = {}) => {
+  return axiosInstance.get('/books', { params });
+};
+
+export const fetchBookById = (bookId) => {
+  return axiosInstance.get(`/books/${bookId}`);
+};
+export const createBook = (userId, bookData) => {
+  return axiosInstance.post(`/books/${userId}`, bookData);
+};
+export const updateBook = (userId, bookId, bookData) => {
+  return axiosInstance.patch(`/books/${userId}/${bookId}`, bookData);
+};
+export const deleteBooks = (userId, bookIdsString) => {
+  return axiosInstance.delete(`/books/${userId}/${bookIdsString}`);
+};
+
+export const addToCart = (bookId, quantity = 1) => {
+  return axiosInstance.post('/cart/add', { bookId, quantity });
+};
+export const fetchUserProfileAdmin = (id, role) => {
+  // Constructs the URL based on role: /vendor/profile-detail/123 or /customer/profile-detail/123
+  // It defaults to 'customer' if the role isn't 'vendor' or 'admin'
+  const rolePath = (role === 'vendor' || role === 'admin') ? 'vendor' : 'customer';
+  return axiosInstance.get(`/${rolePath}/profile-detail/${id}`);
+};
+export const fetchAllCategories = () => {
+  // Matches GET /categories - Assumes a categoryRoutes file exists
+  // We add a large limit to get all categories, or your backend could have a dedicated endpoint
+  return axiosInstance.get('/category', { params: { limit: 100 } }); 
+};
+export const fetchAllAuthorsForFilter = () => {
+  // Matches GET /authors
+  return axiosInstance.get('/author', { params: { limit: 100 } });
+};
+export const fetchAllTags = () => {
+  // Matches GET /tags
+  return axiosInstance.get('/tag', { params: { limit: 100 } });
 };

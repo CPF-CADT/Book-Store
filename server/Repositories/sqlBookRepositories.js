@@ -1,13 +1,14 @@
-import { Model } from "sequelize";
+// file sqlbookrepo
+
 import { Books } from "../module/BookDb.js";
 import { categories } from "../module/categoriesDb.js";
 import { authors } from "../module/authorsDb.js";
 import { Tags } from "../module/tagsDb.js";
-import { Op } from "sequelize";
+import { Model, Op } from "sequelize";
 import { BookTags } from "../module/BooktagesDb.js";
 import { publishers } from "../module/PublishersDb.js";
 import { Users } from "../module/usersDb.js";
-import sequelize from "sequelize";
+
 import { sequelizes } from "../utils/database.js";
 // export async function getbookdetail(Bookid) {
     
@@ -33,11 +34,14 @@ import { sequelizes } from "../utils/database.js";
  */
 export async function getAllBook( option ={} ) {
     try{
+      console.log('hi');
     const pages= parseInt(option.page,10) ||1;
     const limit=parseInt(option.limit,10) || 12;
     const offset=(pages-1)*limit;
     const sortBy =option.sortBy || 'create_at';
     const sortOrder=option.sortOrder || 'desc';
+    // const whereClauses = [];
+    const whereClauses = [];
 
     const queryOptions={
         where:{},
@@ -51,22 +55,69 @@ export async function getAllBook( option ={} ) {
         order: [],
         distinct:true,// Important for when filtering on many-to-many includes
     };
-    if(option.categoryId){
-        queryOptions.where.category_id=option.categoryId;
-    };
-    if(option.minPrice && option.maxPrice){
-        queryOptions.where.price={
-            [Op.between]:[option.minPrice,option.maxPrice]
-        };
-        };
-if (option.searchQuery) {
-  queryOptions.where[Op.or] = [
-    { title: { [Op.like]: `%${option.searchQuery}%` } },
-    { description: { [Op.like]: `%${option.searchQuery}%` } }
-  ];
 
- 
-};
+// Category filter
+    if (option.id) {
+      whereClauses.push({ id: option.id });
+    }
+    if (option.categoryId) {
+      whereClauses.push({ category_id: option.categoryId });
+    }
+        if (option.authorId) {
+      // This is handled by the authors include below, not in whereClauses
+      const authorInclude = queryOptions.include.find(i => i.as === 'authors');
+      if (authorInclude) {
+        authorInclude.where = { id: option.authorId };
+        authorInclude.required = true;
+      }
+    }
+
+    // Tag filter
+    if (option.tagId) {
+      const tagInclude = queryOptions.include.find(i => i.as === 'tags');
+      if (tagInclude) {
+        tagInclude.where = { id: option.tagId };
+        tagInclude.required = true;
+      }
+    }
+
+// Price filter
+const priceFilter = {};
+if (option.minPrice !== undefined && option.minPrice !== "") {
+  const min = parseFloat(option.minPrice);
+  if (!isNaN(min)) priceFilter[Op.gte] = min;
+}
+if (option.maxPrice !== undefined && option.maxPrice !== "") {
+  const max = parseFloat(option.maxPrice);
+  if (!isNaN(max)) priceFilter[Op.lte] = max;
+}
+if (Object.keys(priceFilter).length > 0) {
+  whereClauses.push({ price: priceFilter });
+}
+
+// Search filter
+if (option.searchQuery) {
+  whereClauses.push({
+    [Op.or]: [
+      { title: { [Op.like]: `%${option.searchQuery}%` } },
+      { description: { [Op.like]: `%${option.searchQuery}%` } }
+    ]
+  });
+}
+
+// Combine all filters
+if (whereClauses.length === 1) {
+  // Only one filter, use it directly
+  queryOptions.where = whereClauses[0];
+} else if (whereClauses.length > 1) {
+  // Multiple filters, combine with Op.and
+  queryOptions.where = { [Op.and]: whereClauses };
+} else {
+  queryOptions.where = {};
+  // throw new Error("No filters were provided");
+}
+
+console.log("Query options:", queryOptions);
 if (option.authorName) {
   const authorInclude = queryOptions.include.find(i => i.as === 'authors');
   if (authorInclude) {
@@ -105,6 +156,7 @@ if (option.sortBy) {
   queryOptions.order.push(['create_at', 'DESC']);
 }
 
+console.log("Query options:", queryOptions);
 
  const { count, rows } = await Books.findAndCountAll(queryOptions);
   const totalPages = Math.ceil(count / limit);
@@ -221,68 +273,45 @@ export async function createBooks(UserId, Book) {
     throw error;
   }
 }
-export async function updatebooks(UserId,bookId,newBookData) {
+export async function updatebooks(userId, bookId, newBookData) {
   const t = await sequelizes.transaction();
   try {
-    const user= await Users.findOne({where: {id:UserId,role: 'vendor'},transaction:t});
-    const book = await Books.findOne({where:{id:bookId},transaction: t})
-    if(!user || !book) return null;
-     const {
-      title,
-      description,
-      price,
-      original_price,
-      image_url,
-      isbn,
-      stock,
-      category_id,
-      publisher_id,
-      pages_count,
-      language,
-      format,
-      status,
-      tag = [] 
-    } = newBookData;
-    const bookupdate = await book.set({
-      title,
-      description,
-      price,
-      original_price,
-      image_url,
-      isbn,
-      stock,
-      category_id,
-      publisher_id,
-      pages_count,
-      language,
-      format,
-      status,
-    },{transaction:t});
-    await book.save({transaction:t});
-    // await BookTags.destroy({where:{book_id:bookId},transaction:t})
-    let bookTags = [];
-    if (Array.isArray(tag) &&  tag.length>0) {
-     const UpdateBookTags= await tag.map(tagId=>({
-      book_id: book.id,
-      tag_id: tagId
-     }))
-     bookTags= await BookTags.bulkCreate(UpdateBookTags,{transaction:t});
+    const user = await Users.findOne({ where: { id: userId, role: 'vendor' }, transaction: t });
+    const book = await Books.findByPk(bookId, { transaction: t });
 
+    if (!user) {
+      throw new Error("Authorization failed: User does not have permission.");
     }
-    
-    await t.commit();
- return {
-      UpdateBook: book,
-      UpdateBookTags:bookTags
-    };
+    if (!book) {
+      throw new Error("Book not found.");
+    }
 
-    
+    // Update book details
+    await book.update(newBookData, { transaction: t });
+
+    if (newBookData.tag && Array.isArray(newBookData.tag)) {
+      await BookTags.destroy({ where: { book_id: book.id }, transaction: t });
+
+      if (newBookData.tag.length > 0) {
+        const bookTagsToCreate = newBookData.tag.map(tagId => ({
+          book_id: book.id,
+          tag_id: tagId
+        }));
+        await BookTags.bulkCreate(bookTagsToCreate, { transaction: t });
+      }
+    }
+
+    await t.commit();
+    const updatedBookWithAssociations = await Books.findByPk(book.id, {
+        include: ['authors', 'tags', 'category']
+    });
+    return updatedBookWithAssociations;
+
   } catch (error) {
     await t.rollback();
-    console.error('Error creating book:', error.message);
+    console.error('Error updating book:', error.message);
     throw error;
   }
-  
 }
 
 export async function deleteBooks(userId, bookIds) {
@@ -304,7 +333,7 @@ export async function deleteBooks(userId, bookIds) {
     });
 
     await t.commit();
-    return { message: `${deleted} book(s) deleted.` };
+    return { message: `${deleted} book deleted.` };
 
   } catch (error) {
     await t.rollback();

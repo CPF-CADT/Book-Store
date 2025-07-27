@@ -9,6 +9,12 @@ import authRoutes from './routes/auth.js';
 import bookRoutes from './routes/books.js';
 import customerRoutes from './routes/customerRoutes.js';
 import vendorRoutes from './routes/vendorRoutes.js';
+import bookRoutes from './routes/books.js';
+import categoryRoute from './routes/categories.js';
+import authorRoutes from './routes/author.js';
+import publisherRoutes from './routes/pulishers.js';
+import tagRoutes from './routes/tag.js';
+import cartRouter from './routes/cart.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Use 3001 to avoid conflicts
@@ -16,13 +22,20 @@ const PORT = process.env.PORT || 3001; // Use 3001 to avoid conflicts
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
-// Use the correct base paths for your routes
-app.use('/api/auth', authRoutes);
-app.use('/api/books', bookRoutes); // For all book-related operations
-app.use('/api/customer', customerRoutes);
-app.use('/api/vendor', vendorRoutes);
 
-app.get('/', (req, res) => res.send('📚 Kon Khmer Bookstore API is running!'));
+// Routes
+app.use('/api/user', userRoutes);
+app.use('/api/customer', userRoutes);
+app.use('/api/vendor', vendorRoutes);
+app.use('/api/books', bookRoutes);
+app.use ('/api/category',categoryRoute);
+app.use ('/api/author',authorRoutes);
+app.use ('/api/publisher',publisherRoutes);
+app.use ('/api/tag',tagRoutes);
+app.use('/api/cart',cartRouter)
+app.get('/', (req, res) => {
+  res.send('📚 Welcome to the Bookstore API Server!');
+});
 
 async function startServer() {
   try {
@@ -35,4 +48,5 @@ async function startServer() {
     console.error('❌ Server startup failed:', error);
   }
 }
-startServer();
+
+await startServer();
