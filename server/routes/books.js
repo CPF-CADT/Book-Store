@@ -1,18 +1,17 @@
-// import { Router } from "express";
-// import {handleGetAllbooks,getbookdetail,createBook} from '../controllers/bookControllers.js';
-// const route= Router();
-// route.get('/',handleGetAllbooks);
-// route.get('/:bookId',getbookdetail);
-
-
-// export default route;
-
-
-// const express = require('express');
+// server/routes/books.js
 import express from 'express';
+// Note: your file is bookController.js, not bookControllers.js
+import { handleGetAllbooks, getbookdetail, getFilterOptions } from '../controllers/bookController.js';
+
 const router = express.Router();
-const { getAllBooks } = require('../controllers/BookController');
 
-router.get('/', getAllBooks);
+// GET /api/books - Get all books with filtering
+router.get('/', handleGetAllbooks);
 
-module.exports = router;
+// GET /api/books/filters - Get data for the sidebar
+router.get('/filters', getFilterOptions);
+
+// GET /api/books/:id - Get a single book by its ID
+router.get('/:id', getbookdetail);
+
+export default router;

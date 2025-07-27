@@ -1,26 +1,31 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import { Login } from "./pages/login";
-import { Register } from "./pages/register";
-import { Account_detail } from "./pages/account_detail";
-import { HomePageLayout } from "./HomePageLayout";
-
+import { MainLayout } from "./layouts/MainLayout";
+import { AuthLayout } from "./layouts/AuthLayout";
+import { Homepage } from "./components/Homepage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { AccountDetail } from "./pages/AccountDetail";
+import { AboutPage } from "./pages/AboutPage";
+import { BookDetailPage } from "./pages/BookDetailPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePageLayout />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/account-details" element={<Account_detail />} />
-        <Route index element={<HomePageLayout />} />
-        {/* <Route path="about" element={<AboutPage />} />
-        <Route path="books" element={<BookPage />} /> */}
-        
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/book/:bookId" element={<BookDetailPage />} />
+          <Route path="/account-details" element={<AccountDetail />} />
+        </Route>
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
 }
-
 export default App;

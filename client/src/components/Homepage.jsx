@@ -1,383 +1,115 @@
-import { useEffect, useState } from "react";
+// client/src/components/Homepage.jsx
+import { useEffect, useState, useCallback } from "react";
 import { fetchBooks, fetchFilters } from "../services/api";
+import FilterSideBar from "./FilterSideBar";
+import SortControls from "./SortControls";
+import ProductGrid from "./ProductGrid";
+import { Filter, X } from "lucide-react";
+
+const INITIAL_FILTERS = {
+  priceRange: { min: '', max: '' },
+  brand: [],
+  material: [],
+  availability: []
+};
 
 export function Homepage() {
   const [books, setBooks] = useState([]);
-  const [filteredBooks, setFilteredBooks] = useState([]);
-  const [filters, setFilters] = useState({
-    priceRange: { min: '', max: '' },
-    productType: [],
-    availability: [],
-    brand: [],
-    color: [],
-    material: []
-  });
-  const [sortBy, setSortBy] = useState('alphabetical-asc');
+  const [totalItems, setTotalItems] = useState(0);
+  const [filterOptions, setFilterOptions] = useState({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [sortBy, setSortBy] = useState('relevance');
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterOptions, setFilterOptions] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch initial data from database
   useEffect(() => {
-    const loadData = async () => {
+    const loadFilterOptions = async () => {
       try {
-        setLoading(true);
-        const [bookRes, filtersRes] = await Promise.all([
-          fetchBooks(),
-          fetchFilters()
-        ]);
-        
-        setBooks(Array.isArray(bookRes) ? bookRes : []);
-        setFilteredBooks(Array.isArray(bookRes) ? bookRes : []);
-        setFilterOptions(filtersRes);
-
+        const data = await fetchFilters();
+        setFilterOptions(data);
       } catch (err) {
-        setError('Failed to load data from database');
-        console.error('Error loading data: ');
-      } finally {
-        setLoading(false);
+        console.error("Failed to load filter options:", err);
       }
     };
-    loadData();
+    loadFilterOptions();
   }, []);
 
-  // Apply filtering and sorting
-  useEffect(() => {
-    let result = [...books];
-
-    // Apply price range filter
-    if (filters.priceRange.min || filters.priceRange.max) {
-      result = result.filter(book => {
-        const price = book.price;
-        const min = filters.priceRange.min ? parseFloat(filters.priceRange.min) : 0;
-        const max = filters.priceRange.max ? parseFloat(filters.priceRange.max) : Infinity;
-        return price >= min && price <= max;
-      });
+  const loadBooks = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = { page: currentPage, limit: itemsPerPage, sort: sortBy, search: searchTerm, ...filters.priceRange, brand: filters.brand.join(','), material: filters.material.join(','), availability: filters.availability.join(',') };
+      const data = await fetchBooks(params);
+      setBooks(data.books || []);
+      setTotalItems(data.total || 0);
+    } catch (err) {
+      setError('Failed to load books. Please try again later.',err);
+    } finally {
+      setLoading(false);
     }
+  }, [currentPage, itemsPerPage, sortBy, searchTerm, filters]);
 
-    // Apply category filters
-    Object.keys(filters).forEach(filterKey => {
-      if (filterKey !== 'priceRange' && filters[filterKey].length > 0) {
-        result = result.filter(book => {
-          return filters[filterKey].some(value =>
-            book[filterKey]?.toLowerCase().includes(value.toLowerCase())
-          );
-        });
-      }
-    });
+  useEffect(() => { loadBooks(); }, [loadBooks]);
 
-    // Apply sorting
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case 'alphabetical-asc':
-          return a.title.localeCompare(b.title);
-        case 'alphabetical-desc':
-          return b.title.localeCompare(a.title);
-        case 'price-low-high':
-          return a.price - b.price;
-        case 'price-high-low':
-          return b.price - a.price;
-        case 'newest':
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        default:
-          return 0;
-      }
-    });
+  const handleFilterChange = (newFilters) => { setFilters(newFilters); setCurrentPage(1); };
+  const handleSortChange = (newSort) => { setSortBy(newSort); setCurrentPage(1); };
+  const handleItemsPerPageChange = (newLimit) => { setItemsPerPage(newLimit); setCurrentPage(1); };
+  const handleSearch = (newSearchTerm) => { setSearchTerm(newSearchTerm); setCurrentPage(1); };
 
-    setFilteredBooks(result);
-    if(books.length > 0) {
-        setCurrentPage(1);
-    }
-    
-  }, [books, filters, sortBy]);
-
-  const handleFilterChange = (newFilters) => {
-    setFilters(prevFilters => ({...prevFilters, ...newFilters}));
-  };
-
-  const handleSortChange = (newSortBy) => {
-    setSortBy(newSortBy);
-  };
-
-  const handleItemsPerPageChange = (newItemPerPage) => {
-    setItemsPerPage(newItemPerPage);
-    setCurrentPage(1);
-  };
-
-  // Pagination logic
-  const totalItems = filteredBooks.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentBooks = filteredBooks.slice(startIndex, endIndex);
-
-  // Filter Sidebar Component
-  const FilterSidebar = ({ filters, filterOptions, onFilterChange }) => {
-    const handlePriceChange = (type, value) => {
-      onFilterChange({
-        priceRange: {
-          ...filters.priceRange,
-          [type]: value
-        }
-      });
-    };
-
-    const handleCategoryChange = (category, value, checked) => {
-      const currentValues = filters[category] || [];
-      const newValues = checked
-        ? [...currentValues, value]
-        : currentValues.filter(v => v !== value);
-      
-      onFilterChange({
-        [category]: newValues
-      });
-    };
-
+  const Pagination = () => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) return null;
     return (
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold">Filters</h2>
-        
-        {/* Price Range Filter */}
-        <div>
-          <h3 className="font-semibold mb-2">Price Range</h3>
-          <div className="space-y-2">
-            <input
-              type="number"
-              placeholder="Min Price"
-              value={filters.priceRange.min}
-              onChange={(e) => handlePriceChange('min', e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-            <input
-              type="number"
-              placeholder="Max Price"
-              value={filters.priceRange.max}
-              onChange={(e) => handlePriceChange('max', e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-        </div>
-
-        {/* Dynamic Filter Sections from /api/filters */}
-        {Object.entries(filterOptions).map(([category, options]) => (
-          <div key={category}>
-            <h3 className="font-semibold mb-2 capitalize">{category.replace(/([A-Z])/g, ' $1')}</h3>
-            <div className="space-y-1 max-h-32 overflow-y-auto">
-              {options.map(option => (
-                <label key={option.value} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={filters[category]?.includes(option.value) || false}
-                    onChange={(e) => handleCategoryChange(category, option.value, e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm">{option.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {/* Clear Filters Button */}
-        <button
-          onClick={() => onFilterChange({
-            priceRange: { min: '', max: '' },
-            productType: [],
-            availability: [],
-            brand: [],
-            color: [],
-            material: []
-          })}
-          className="w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
-        >
-          Clear All Filters
-        </button>
+      <div className="flex justify-center items-center mt-8 space-x-1 sm:space-x-2">
+        <button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1 || loading} className="px-3 py-2 border rounded disabled:opacity-50 text-sm">Prev</button>
+        <span className="text-sm text-gray-600 px-2">Page {currentPage} of {totalPages}</span>
+        <button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages || loading} className="px-3 py-2 border rounded disabled:opacity-50 text-sm">Next</button>
       </div>
     );
   };
-
-  // Sort Controls Component
-  const SortControls = ({ sortBy, itemsPerPage, totalItems, startIndex, endIndex, onSortChange, onItemsPerPageChange }) => {
-    return (
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <div>
-            <label className="text-sm font-medium mr-2">Sort by:</label>
-            <select
-              value={sortBy}
-              onChange={(e) => onSortChange(e.target.value)}
-              className="p-2 border rounded"
-            >
-              <option value="alphabetical-asc">Title A-Z</option>
-              <option value="alphabetical-desc">Title Z-A</option>
-              <option value="price-low-high">Price: Low to High</option>
-              <option value="price-high-low">Price: High to Low</option>
-              <option value="newest">Newest First</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mr-2">Show:</label>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => onItemsPerPageChange(parseInt(e.target.value))}
-              className="p-2 border rounded"
-            >
-              <option value={12}>12 per page</option>
-              <option value={24}>24 per page</option>
-              <option value={48}>48 per page</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="text-sm text-gray-600">
-          Showing {startIndex + 1}-{endIndex} of {totalItems} products
-        </div>
-      </div>
-    );
-  };
-
-  // Product Grid Component
-  const ProductGrid = ({ books }) => {
-    if (!books || books.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {books.map((book) => (
-          <div key={book.id} className="border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-            <div className="p-4">
-              <h3 className="font-bold text-lg mb-2 line-clamp-2">{book.title}</h3>
-              <div className="space-y-1 mb-3">
-                <p className="text-2xl font-bold text-red-600">${book.price.toFixed(2)}</p>
-                <p className="text-sm text-gray-600">{book.brand}</p>
-                <p className="text-sm text-gray-500">{book.productType}</p>
-              </div>
-              
-              <div className="flex items-center justify-between mb-3">
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  book.availability === 'In Stock' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {book.availability}
-                </span>
-                {book.color && (
-                  <span className="text-xs text-gray-500">{book.color}</span>
-                )}
-              </div>
-
-              <button className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition-colors">
-                {book.availability === 'In Stock' ? 'Add to Cart' : 'Pre-order'}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  if (loading) {
-    return (
-       <div className="min-h-screen flex flex-col bg-white">
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading Products...</p>
-          </div>
-        </main>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-       <div className="min-h-screen flex flex-col bg-white">
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-red-500 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Retry
-            </button>
-          </div>
-        </main>
-      </div>
-    )
-  }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <main className="flex-1 flex flex-col">
-        <div className="flex flex-1 max-w-7xl mx-auto w-auto pt-12 pb-8 px-4">
-          <aside className="w-64 pr-8">
-            <FilterSidebar
-              filters={filters}
-              filterOptions={filterOptions}
-              onFilterChange={handleFilterChange}
-            />
-          </aside>
-
-          <section className="flex-1">
-            <SortControls
-              sortBy={sortBy}
-              itemsPerPage={itemsPerPage}
-              totalItems={totalItems}
-              startIndex={startIndex}
-              endIndex={Math.min(endIndex, totalItems)}
-              onSortChange={handleSortChange}
-              onItemsPerPageChange={handleItemsPerPageChange}
-            />
-
-            <div className="mt-6">
-              <ProductGrid books={currentBooks} />
-            </div>
-
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center mt-8 space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                >
-                  Previous
-                </button>
-
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index + 1}
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`px-4 py-2 border rounded ${
-                      currentPage === index + 1
-                        ? 'bg-red-500 text-white border-red-500'
-                        : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </section>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="lg:hidden flex justify-end mb-4">
+          <button onClick={() => setIsFilterOpen(true)} className="inline-flex items-center gap-2 bg-white px-4 py-2 border border-gray-300 rounded-md shadow-sm font-medium text-gray-700 hover:bg-gray-50">
+            <Filter size={20} /> Show Filters
+          </button>
         </div>
-      </main>
+
+        <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
+          <FilterSideBar filters={filters} filterOptions={filterOptions} onFilterChange={handleFilterChange} />
+        </div>
+
+        {isFilterOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setIsFilterOpen(false)}>
+            <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-xl p-4 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4 pb-4 border-b">
+                <h2 className="text-xl font-bold">Filters</h2>
+                <button onClick={() => setIsFilterOpen(false)}><X size={24} /></button>
+              </div>
+              <FilterSideBar filters={filters} filterOptions={filterOptions} onFilterChange={handleFilterChange} />
+            </div>
+          </div>
+        )}
+
+        <section className="flex-1 min-w-0">
+          <SortControls sortBy={sortBy} itemsPerPage={itemsPerPage} totalItems={totalItems} currentPage={currentPage} searchTerm={searchTerm} viewMode={viewMode} loading={loading} onSortChange={handleSortChange} onItemsPerPageChange={handleItemsPerPageChange} onSearch={handleSearch} onViewModeChange={setViewMode} />
+          {error ? (
+            <div className="text-center py-20 text-red-500 bg-red-50 rounded-lg">{error}</div>
+          ) : (
+            <>
+              <ProductGrid books={books} loading={loading} viewMode={viewMode} />
+              <Pagination />
+            </>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
