@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { updateUserProfile } from "../services/api";// Or '../services/api'
 import { HomeHeader, Footer } from "../components/HeaderFooter";
+import { useParams } from "react-router-dom";
 
 // A smaller, reusable component for displaying individual profile fields cleanly.
 function ProfileField({ label, value, isVerified = null }) {
@@ -28,6 +29,7 @@ function ProfileField({ label, value, isVerified = null }) {
 // Main User Profile Page Component
 export function UserProfile() {
   const { user, setUser } = useAuth();
+  const { id } = useParams();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",

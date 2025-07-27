@@ -25,6 +25,8 @@ import authorRoutes from './routes/author.js';
 import publisherRoutes from './routes/pulishers.js';
 import tagRoutes from './routes/tag.js';
 import cartRouter from './routes/cart.route.js';
+import contactRouter from './routes/contactRoutes.js';
+import blogRouter from './routes/blogRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,6 +39,8 @@ app.use(express.json());
 
 
 // Routes
+app.use('/api/blog', blogRouter);
+app.use('/api/contact', contactRouter);
 app.use('/api/user', userRoutes);
 app.use('/api/customer', userRoutes);
 app.use('/api/vendor', vendorRoutes);

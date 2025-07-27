@@ -10,6 +10,11 @@ import { Homepage } from './components/Homepage';
 import { AdminDashboard } from './pages/admindashborad';
 import { NotFound } from './pages/NotFound'; 
 import { BookDetailPage } from './pages/BookDetailPage';
+import { AboutUsPage } from './pages/AboutUsPage.jsx';
+import { ContactPage } from './pages/ContactPage.jsx';
+import { BlogDetailPage } from './pages/BlogDetailPage.jsx';
+import { BlogListPage } from './pages/BlogListPage.jsx';
+import { AdminLayout } from './components/admin/AdminLayout.jsx';
 // import { Homepage } from './components/Homepage';
 // import FilterSideBar from "./components/FilterSideBar";
 class ErrorBoundary extends React.Component {
@@ -49,43 +54,59 @@ function ProtectedRoute({ allowedRoles, children }) {
 // --- Main App Component with Improved Routing ---
 function App() {
   return (
-      <ErrorBoundary>
+       <ErrorBoundary>
         <Routes>
-          {/* Public routes that use the main layout */}
-          {/* <Route element={<HomePageLayout />}> */}
-             <Route path="/" element={<HomePageLayout />}>
-             <Route index element={<Homepage />} /> 
-              <Route path="book/:id" element={<BookDetailPage />} /> 
+
+          {/* ===== 1. PUBLIC ROUTES (with Header/Footer) ===== */}
+          <Route path="/" element={<HomePageLayout />}>
+            <Route index element={<Homepage />} />
+            <Route path="about" element={<AboutUsPage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="blog" element={<BlogListPage />} />
+            <Route path="blog/:slug" element={<BlogDetailPage />} />
+            <Route path="book/:id" element={<BookDetailPage />} /> 
           </Route>
-          
-          {/* Auth routes without the main layout */}
+
+          {/* ===== 2. AUTH ROUTES (standalone) ===== */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
-          
-          {/* Protected Routes */}
+          {/* ===== 3. PROTECTED USER ROUTES ===== */}
           <Route
             path="/profile"
             element={
               <ProtectedRoute>
-                {/* For consistency, protected pages can also use a layout */}
+                {/* UserProfile uses the public layout for consistency */}
                 <HomePageLayout>
                   <UserProfile />
                 </HomePageLayout>
               </ProtectedRoute>
             }
           />
+          
+          {/* ===== 4. PROTECTED ADMIN & VENDOR ROUTES ===== */}
+          {/* All routes for admins/vendors will now have the AdminHeader/Sidebar */}
           <Route
-            path="/dashboard"
+            path="/"
             element={
               <ProtectedRoute allowedRoles={['admin', 'vendor']}>
-                <AdminDashboard />
+                <AdminLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            {/* These routes are now relative to the parent "/" path */}
+            <Route path="dashboard" element={<AdminDashboard />} />
+            {/* Example: Your future book management page */}
+            <Route path="admin/books" element={<div>Book Management Page</div>} /> 
+            {/* Add all your other admin-specific pages here */}
+            {/* <Route path="admin/users" element={<AdminUsersPage />} /> */}
+          </Route>
 
-          {/* Catch-all 404 Route */}
-          <Route path="*" element={< NotFound />} />
+
+          {/* ===== 5. CATCH-ALL 404 ROUTE ===== */}
+          {/* This should be the very last route */}
+          <Route path="*" element={<NotFound />} />
+
         </Routes>
       </ErrorBoundary>
   );

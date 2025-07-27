@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 // import { Menu, X, User, ShoppingBag, Heart } from 'lucide-react';
 import { Menu, X, User, ShoppingBag, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import { useAuth } from '../context/AuthContext'; 
+import { FaUser, FaShoppingBag, FaHeart, FaSignInAlt, FaSignOutAlt } from 'react-icons/fa';
+import { useNavigate } from "react-router-dom";
+import { NavLink } from 'react-router-dom';
 // import HeaderFooter from './components/HeaderFooter';
 
 
 
 // Mock FontAwesome icons - replace with your actual imports
-const FaUser = () => <User size={20} />;
-const FaShoppingBag = () => <ShoppingBag size={20} />;
-const FaHeart = () => <Heart size={20} />;
+
 
 export function LoginHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -161,183 +162,111 @@ export function LoginHeader() {
 
 export function HomeHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // Get user data and logout function from the AuthContext
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const handleLinkClick = () => {
+    // This will close the mobile menu whenever a link is clicked
     setIsMenuOpen(false);
   };
 
+  const handleLogout = () => {
+    handleLinkClick(); // Close menu
+    logout(); // Call the logout function from context
+  };
+
+  // NavLink adds an "active" class to the current page's link, making it easy to style.
+  const linkStyles = "text-gray-600 font-semibold tracking-wider hover:text-red-500 transition-colors";
+  const activeLinkStyles = "text-red-500";
+  const mobileLinkStyles = "block py-2 px-3 text-lg font-semibold rounded-md hover:bg-gray-100 transition-colors";
+
   return (
-    <header className="w-full bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Avatar - Hidden on mobile */}
-          <div className="hidden md:flex items-center">
-            <img
-              src="/avatar.png"
-              alt="avatar"
-              className="w-16 h-16 rounded-full border object-cover"
+    <header className="w-full bg-white shadow-md sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-20">
+          
+          {/* Left Side: Logo */}
+          <Link to="/" className="flex-shrink-0 flex items-center">
+             <img
+              src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1887&auto=format&fit=crop"
+              alt="Kon Khmer Bookstore Logo"
+              className="w-12 h-12 rounded-full border-2 border-red-500 object-cover"
             />
-          </div>
+            <span className="ml-3 text-2xl font-bold text-gray-800">Kon <span className="text-red-500">Khmer</span></span>
+          </Link>
 
-          {/* Mobile Logo */}
-          <div className="md:hidden flex items-center">
-            <div className="w-8 h-8 bg-red-500 grid grid-cols-2 gap-1 p-1 rounded">
-              <div className="bg-white"></div>
-              <div className="bg-white"></div>
-              <div className="bg-white"></div>
-              <div className="bg-white"></div>
-            </div>
-            <h1 className="ml-2 text-lg font-bold text-red-500">Kon Khmer</h1>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex flex-1 items-center justify-center space-x-6">
-            <Link
-              to="/"
-              className="text-red-500 font-bold tracking-widest border-r border-gray-200 pr-6"
-            >
-              HOME
-            </Link>
-            <Link
-              to="/about"
-              className="text-black font-semibold tracking-widest hover:text-red-500 border-r border-gray-200 px-6 transition-colors"
-            >
-              ABOUT US
-            </Link>
-            <Link
-              to="/books"
-              className="text-black font-semibold tracking-widest hover:text-red-500 border-r border-gray-200 px-6 transition-colors"
-            >
-              BOOKS
-            </Link>
-            <Link
-              to="/new-release"
-              className="text-black font-semibold tracking-widest hover:text-red-500 border-r border-gray-200 px-6 transition-colors"
-            >
-              NEW RELEASE
-            </Link>
-            <Link
-              to="/contact"
-              className="text-black font-semibold tracking-widest hover:text-red-500 border-r border-gray-200 px-6 transition-colors"
-            >
-              CONTACT US
-            </Link>
-            <Link
-              to="/blog"
-              className="text-black font-semibold tracking-widest hover:text-red-500 px-6 transition-colors"
-            >
-              BLOG
-            </Link>
+          {/* Center: Desktop Navigation */}
+          <nav className="hidden md:flex md:space-x-8">
+            <NavLink to="/" className={({ isActive }) => `${linkStyles} ${isActive ? activeLinkStyles : ''}`} end>Home</NavLink>
+            <NavLink to="/books" className={({ isActive }) => `${linkStyles} ${isActive ? activeLinkStyles : ''}`}>Books</NavLink>
+            <NavLink to="/about" className={({ isActive }) => `${linkStyles} ${isActive ? activeLinkStyles : ''}`}>About</NavLink>
+            <NavLink to="/blog" className={({ isActive }) => `${linkStyles} ${isActive ? activeLinkStyles : ''}`}>Blog</NavLink>
+            <NavLink to="/contact" className={({ isActive }) => `${linkStyles} ${isActive ? activeLinkStyles : ''}`}>Contact</NavLink>
           </nav>
 
-          {/* Desktop Icons */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link to="/profile" className="text-red-500 text-xl hover:text-red-200 transition-colors">
-              <FaUser />
-            </Link>
-            <span className="border-r border-gray-200 h-6"></span>
-            <Link to="/cart" className="text-red-500 text-xl hover:text-red-200 transition-colors">
-              <FaShoppingBag />
-            </Link>
-            <span className="border-r border-gray-200 h-6"></span>
-            <Link to="/wishlist" className="text-red-500 text-xl hover:text-red-200 transition-colors">
-              <FaHeart />
-            </Link>
+          {/* Right Side: Desktop Icons & Auth */}
+          <div className="hidden md:flex items-center space-x-5">
+            <Link to="/cart" className="text-gray-500 hover:text-red-500 transition-colors"><FaShoppingBag size={22} /></Link>
+            <Link to="/wishlist" className="text-gray-500 hover:text-red-500 transition-colors"><FaHeart size={22} /></Link>
+            
+            {user ? (
+              // If user is logged in
+              <>
+                <Link to="/customer/:id/profile" className="text-gray-500 hover:text-red-500 transition-colors"><FaUser size={22} /></Link>
+                <button onClick={logout} title="Logout" className="text-gray-500 hover:text-red-500 transition-colors">
+                  <FaSignOutAlt size={22} />
+                </button>
+              </>
+            ) : (
+              // If user is a guest
+              <Link to="/login" className="flex items-center bg-red-500 text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-red-600 transition">
+                <FaSignInAlt className="mr-2"/> Login
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden text-gray-600 hover:text-red-500 transition-colors"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Navigation Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-3 mt-4">
-              <Link 
-                to="/" 
-                className="text-red-500 font-bold tracking-widest py-2 px-2 hover:bg-gray-50 rounded transition-colors"
-                onClick={handleLinkClick}
-              >
-                HOME
-              </Link>
-              <Link 
-                to="/about" 
-                className="text-black font-semibold tracking-widest hover:text-red-500 py-2 px-2 hover:bg-gray-50 rounded transition-colors"
-                onClick={handleLinkClick}
-              >
-                ABOUT US
-              </Link>
-              <Link 
-                to="/books" 
-                className="text-black font-semibold tracking-widest hover:text-red-500 py-2 px-2 hover:bg-gray-50 rounded transition-colors"
-                onClick={handleLinkClick}
-              >
-                BOOKS
-              </Link>
-              <Link 
-                to="/new-release" 
-                className="text-black font-semibold tracking-widest hover:text-red-500 py-2 px-2 hover:bg-gray-50 rounded transition-colors"
-                onClick={handleLinkClick}
-              >
-                NEW RELEASE
-              </Link>
-              <Link 
-                to="/contact" 
-                className="text-black font-semibold tracking-widest hover:text-red-500 py-2 px-2 hover:bg-gray-50 rounded transition-colors"
-                onClick={handleLinkClick}
-              >
-                CONTACT US
-              </Link>
-              <Link 
-                to="/blog" 
-                className="text-black font-semibold tracking-widest hover:text-red-500 py-2 px-2 hover:bg-gray-50 rounded transition-colors"
-                onClick={handleLinkClick}
-              >
-                BLOG
-              </Link>
-              
-              {/* Mobile Icons */}
-              <div className="pt-3 mt-3 border-t border-gray-200">
-                <div className="flex flex-col space-y-3">
-                  <Link 
-                    to="/profile" 
-                    className="text-red-500 hover:text-red-200 transition-colors flex items-center space-x-2 py-2 px-2 hover:bg-gray-50 rounded"
-                    onClick={handleLinkClick}
-                  >
-                    <FaUser />
-                    <span>Profile</span>
-                  </Link>
-                  <Link 
-                    to="/cart" 
-                    className="text-red-500 hover:text-red-200 transition-colors flex items-center space-x-2 py-2 px-2 hover:bg-gray-50 rounded"
-                    onClick={handleLinkClick}
-                  >
-                    <FaShoppingBag />
-                    <span>Cart</span>
-                  </Link>
-                  <Link 
-                    to="/wishlist" 
-                    className="text-red-500 hover:text-red-200 transition-colors flex items-center space-x-2 py-2 px-2 hover:bg-gray-50 rounded"
-                    onClick={handleLinkClick}
-                  >
-                    <FaHeart />
-                    <span>Wishlist</span>
-                  </Link>
-                </div>
-              </div>
-            </nav>
+          <div className="md:hidden">
+            <button
+              onClick={toggleMenu}
+              className="p-2 rounded-md text-gray-600 hover:text-red-500"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            </button>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Mobile Navigation Menu - SLIDE IN EFFECT */}
+      <div className={`absolute md:hidden top-20 left-0 w-full bg-white shadow-lg transition-transform duration-300 ease-in-out ${isMenuOpen ? 'transform translate-y-0' : 'transform -translate-y-full'}`}>
+          <nav className="flex flex-col p-4 space-y-2">
+            <Link to="/" className={mobileLinkStyles} onClick={handleLinkClick}>Home</Link>
+            <Link to="/books" className={mobileLinkStyles} onClick={handleLinkClick}>Books</Link>
+            <Link to="/about" className={mobileLinkStyles} onClick={handleLinkClick}>About</Link>
+            <Link to="/blog" className={mobileLinkStyles} onClick={handleLinkClick}>Blog</Link>
+            <Link to="/contact" className={mobileLinkStyles} onClick={handleLinkClick}>Contact</Link>
+            
+            <hr className="my-4"/>
+            
+            {user ? (
+                // If logged in
+                <>
+                  <Link to="/profile" className={`${mobileLinkStyles} flex items-center`} onClick={handleLinkClick}><FaUser className="mr-3" /> My Profile</Link>
+                  <Link to="/cart" className={`${mobileLinkStyles} flex items-center`} onClick={handleLinkClick}><FaShoppingBag className="mr-3" /> My Cart</Link>
+                  <Link to="/wishlist" className={`${mobileLinkStyles} flex items-center`} onClick={handleLinkClick}><FaHeart className="mr-3" /> My Wishlist</Link>
+                  <button onClick={handleLogout} className={`${mobileLinkStyles} text-red-500 flex items-center w-full`}><FaSignOutAlt className="mr-3" /> Logout</button>
+                </>
+            ) : (
+                // If guest
+                 <Link to="/login" className={`${mobileLinkStyles} text-red-500 flex items-center`} onClick={handleLinkClick}><FaSignInAlt className="mr-3" /> Login / Register</Link>
+            )}
+          </nav>
       </div>
     </header>
   );

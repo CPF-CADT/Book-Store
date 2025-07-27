@@ -14,6 +14,7 @@ import { publishers } from '../module/PublishersDb.js';
 import { Tags } from '../module/tagsDb.js';
 import{BookTags} from '../module/BooktagesDb.js';
 import {cartItems} from '../module/CartItemDb.js';
+import { BlogPost } from '../module/BlogPost.js'; 
 
 
 const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -37,6 +38,26 @@ async function createUsers(count) {
     });
   }
   return Users.bulkCreate(users);
+}
+async function createBlogPosts(count, allUsers) {
+  const posts = [];
+  for (let i = 0; i < count; i++) {
+    const title = faker.lorem.sentence({ min: 5, max: 10 });
+    const content = `<h2>${faker.lorem.sentence()}</h2><p>${faker.lorem.paragraphs(3, '\n\n')}</p><blockquote>${faker.lorem.sentence()}</blockquote><p>${faker.lorem.paragraphs(2, '\n\n')}</p>`;
+    
+    posts.push({
+      title: title,
+      slug: faker.helpers.slugify(title).toLowerCase(),
+      content: content, // Generates HTML-like content
+      excerpt: faker.lorem.paragraph(),
+      featured_image_url: faker.image.urlLoremFlickr({ category: 'nature' }),
+      // Assign a random user as the author
+      author_id: getRandomItem(allUsers).id,
+      status: 'published', // Or randomize with 'draft'
+      published_at: faker.date.recent({ days: 30 }),
+    });
+  }
+  return BlogPost.bulkCreate(posts);
 }
 
 async function createCategories(count) {
@@ -202,6 +223,8 @@ async function seedDatabase() {
     // --- Create data in order of dependency ---
     console.log('Creating users...');
     const createdUsers = await createUsers(20);
+     console.log('Creating blog posts...');
+    await createBlogPosts(15, createdUsers);
 
     console.log('Creating categories...');
     await createCategories(20); 
@@ -218,6 +241,7 @@ async function seedDatabase() {
 
     console.log('Creating books...');
     const createdBooks = await createBooks(100, createdCategories, createdPublishers);
+    
 
     // --- Create relationship data (many-to-many) ---
     console.log('Assigning authors to books...');
