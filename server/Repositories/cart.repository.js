@@ -31,7 +31,31 @@ class CartRepository {
     }
     return cart.toJSON();
   }
+  
+  static async updateCart(u_id, b_id, qty) {
+    const cart = await cartItems.findAll({ where: { user_id: u_id, book_id: b_id } });
+  
+    if (!cart) {
+      throw new Error("Cart not found");
+    }
 
+    cart.quantity = qty;
+    cart.save();
+    
+    return cart.toJSON();
+  }
+  
+  static async deleteCart(u_id, b_id) {
+    const cart = await cartItems.findAll({ where: { user_id: u_id, book_id: b_id } });
+
+    if (!cart) {
+      throw new Error("Cart not found");
+    }
+
+    cart.destroy();
+
+    return cart.toJSON();
+  }
 }
 
 export default CartRepository;
