@@ -17,9 +17,11 @@ import './module/reviewsDb.js';
 import './module/CartItemDb.js';
 
 // Import routes
+
 import userRoutes from './routes/userRoutes.js';
 import vendorRoutes from './routes/vendorRoutes.js';
 import bookRoutes from './routes/books.js';
+import filtersRoutes from './routes/filters.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,14 +30,17 @@ const PORT = process.env.PORT || 3000;
 app.use(cors({
   origin: "http://localhost:5173" 
 }));
+// app.use(cors());
 app.use(express.json());
 
 
 // Routes
+
 app.use('/api.auth', userRoutes);
 app.use('/api/customer', userRoutes);
 app.use('/api/vendor', vendorRoutes);
 app.use('/api/books', bookRoutes);
+app.use('/api/filters', filtersRoutes);
 
 app.get('/', (req, res) => {
   res.send('📚 Welcome to the Bookstore API Server!');

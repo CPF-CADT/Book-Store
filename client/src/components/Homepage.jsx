@@ -1,51 +1,5 @@
 import { useEffect, useState } from "react";
-
-// No need to import from 'react-router-dom'
-// No need to import fetchBooks from api since we are mocking it here
-// import { fetchBooks } from "../services/api";
-
-// --- MOCK DATA FOR TESTING ---
-
-// 1. Mock data for the books array
-const mockBooks = [
-  { id: 1, title: 'The Great Gatsby', price: 10.99, createdAt: '2023-10-26T10:00:00Z', productType: 'Paperback', availability: 'In Stock', brand: 'Penguin Classics', color: 'Blue', material: 'Paper' },
-  { id: 2, title: 'To Kill a Mockingbird', price: 12.50, createdAt: '2023-09-15T12:30:00Z', productType: 'Hardcover', availability: 'In Stock', brand: 'HarperCollins', color: 'Black', material: 'Premium Cardboard' },
-  { id: 3, title: '1984', price: 9.99, createdAt: '2024-01-05T15:00:00Z', productType: 'Paperback', availability: 'Pre-order', brand: 'Vintage Books', color: 'Red', material: 'Paper' },
-  { id: 4, title: 'Dune', price: 15.00, createdAt: '2022-11-20T08:45:00Z', productType: 'E-book', availability: 'In Stock', brand: 'Simon & Schuster', color: 'Multi-color', material: 'Paper' },
-  // Add 10-20 more mock books here to test pagination properly
-  { id: 5, title: 'Pride and Prejudice', price: 8.99, createdAt: '2023-12-01T11:00:00Z', productType: 'Paperback', availability: 'In Stock', brand: 'Penguin Classics', color: 'Multi-color', material: 'Paper' },
-  { id: 6, title: 'The Hobbit', price: 14.99, createdAt: '2023-08-22T14:20:00Z', productType: 'Hardcover', availability: 'In Stock', brand: 'HarperCollins', color: 'Green', material: 'Premium Cardboard' },
-  { id: 7, title: 'Brave New World', price: 11.25, createdAt: '2024-02-10T09:00:00Z', productType: 'Paperback', availability: 'In Stock', brand: 'Vintage Books', color: 'Blue', material: 'Paper' },
-  { id: 8, title: 'Moby Dick', price: 13.75, createdAt: '2023-07-30T18:00:00Z', productType: 'Hardcover', availability: 'Pre-order', brand: 'Penguin Classics', color: 'Black', material: 'Leather Bound' },
-  { id: 9, title: 'War and Peace', price: 19.99, createdAt: '2023-06-18T20:15:00Z', productType: 'E-book', availability: 'In Stock', brand: 'Simon & Schuster', color: 'Multi-color', material: 'Paper' },
-  { id: 10, title: 'The Catcher in the Rye', price: 10.00, createdAt: '2023-05-12T13:45:00Z', productType: 'Paperback', availability: 'In Stock', brand: 'Penguin Classics', color: 'Red', material: 'Paper' },
-  { id: 11, title: 'Crime and Punishment', price: 12.99, createdAt: '2023-04-25T16:55:00Z', productType: 'Hardcover', availability: 'In Stock', brand: 'Vintage Books', color: 'Black', material: 'Premium Cardboard' },
-  { id: 12, title: 'The Lord of the Rings', price: 25.00, createdAt: '2023-03-19T22:00:00Z', productType: 'Hardcover', availability: 'In Stock', brand: 'HarperCollins', color: 'Multi-color', material: 'Leather Bound' },
-  { id: 13, title: 'Frankenstein', price: 7.99, createdAt: '2024-03-01T07:30:00Z', productType: 'Paperback', availability: 'Pre-order', brand: 'Penguin Classics', color: 'Black', material: 'Paper' },
-
-];
-
-// 2. Mock fetchBooks function to simulate an API call
-const fetchBooks = () => {
-  console.log("Mock fetchBooks called");
-  return Promise.resolve(mockBooks);
-};
-
-// Mock data for filter options
-const mockFilterOptions = {
-  productType: ["Hardcover", "Paperback", "E-book"],
-  availability: ["In Stock", "Pre-order"],
-  brand: ["Penguin Classics", "HarperCollins", "Simon & Schuster", "Vintage Books"],
-  color: ["Red", "Blue", "Black", "Multi-color", "Green"],
-  material: ["Paper", "Premium Cardboard", "Leather Bound"]
-};
-
-// Mock fetchFilters function to simulate an API call
-const fetchFilters = () => {
-  console.log("Mock fetchFilters called");
-  return Promise.resolve(mockFilterOptions);
-};
-
+import { fetchBooks, fetchFilters } from "../services/api";
 
 export function Homepage() {
   const [books, setBooks] = useState([]);
@@ -65,7 +19,7 @@ export function Homepage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch initial data
+  // Fetch initial data from database
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -75,14 +29,13 @@ export function Homepage() {
           fetchFilters()
         ]);
         
-        // **FIX & SAFEGUARD**: Ensure bookRes is an array before setting state.
         setBooks(Array.isArray(bookRes) ? bookRes : []);
         setFilteredBooks(Array.isArray(bookRes) ? bookRes : []);
         setFilterOptions(filtersRes);
 
       } catch (err) {
-        setError('Failed to load data');
-        console.error('Error loading data: ', err);
+        setError('Failed to load data from database');
+        console.error('Error loading data: ');
       } finally {
         setLoading(false);
       }
@@ -92,8 +45,6 @@ export function Homepage() {
 
   // Apply filtering and sorting
   useEffect(() => {
-    // No need for a try-catch here if the data is handled correctly.
-    // Errors in this logic are better caught during development.
     let result = [...books];
 
     // Apply price range filter
@@ -136,7 +87,7 @@ export function Homepage() {
     });
 
     setFilteredBooks(result);
-    if(books.length > 0) { // Avoid resetting page on initial empty render
+    if(books.length > 0) {
         setCurrentPage(1);
     }
     
@@ -162,13 +113,184 @@ export function Homepage() {
   const endIndex = startIndex + itemsPerPage;
   const currentBooks = filteredBooks.slice(startIndex, endIndex);
 
+  // Filter Sidebar Component
+  const FilterSidebar = ({ filters, filterOptions, onFilterChange }) => {
+    const handlePriceChange = (type, value) => {
+      onFilterChange({
+        priceRange: {
+          ...filters.priceRange,
+          [type]: value
+        }
+      });
+    };
+
+    const handleCategoryChange = (category, value, checked) => {
+      const currentValues = filters[category] || [];
+      const newValues = checked
+        ? [...currentValues, value]
+        : currentValues.filter(v => v !== value);
+      
+      onFilterChange({
+        [category]: newValues
+      });
+    };
+
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold">Filters</h2>
+        
+        {/* Price Range Filter */}
+        <div>
+          <h3 className="font-semibold mb-2">Price Range</h3>
+          <div className="space-y-2">
+            <input
+              type="number"
+              placeholder="Min Price"
+              value={filters.priceRange.min}
+              onChange={(e) => handlePriceChange('min', e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+            <input
+              type="number"
+              placeholder="Max Price"
+              value={filters.priceRange.max}
+              onChange={(e) => handlePriceChange('max', e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        </div>
+
+        {/* Dynamic Filter Sections from /api/filters */}
+        {Object.entries(filterOptions).map(([category, options]) => (
+          <div key={category}>
+            <h3 className="font-semibold mb-2 capitalize">{category.replace(/([A-Z])/g, ' $1')}</h3>
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {options.map(option => (
+                <label key={option.value} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={filters[category]?.includes(option.value) || false}
+                    onChange={(e) => handleCategoryChange(category, option.value, e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm">{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {/* Clear Filters Button */}
+        <button
+          onClick={() => onFilterChange({
+            priceRange: { min: '', max: '' },
+            productType: [],
+            availability: [],
+            brand: [],
+            color: [],
+            material: []
+          })}
+          className="w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+        >
+          Clear All Filters
+        </button>
+      </div>
+    );
+  };
+
+  // Sort Controls Component
+  const SortControls = ({ sortBy, itemsPerPage, totalItems, startIndex, endIndex, onSortChange, onItemsPerPageChange }) => {
+    return (
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-4">
+          <div>
+            <label className="text-sm font-medium mr-2">Sort by:</label>
+            <select
+              value={sortBy}
+              onChange={(e) => onSortChange(e.target.value)}
+              className="p-2 border rounded"
+            >
+              <option value="alphabetical-asc">Title A-Z</option>
+              <option value="alphabetical-desc">Title Z-A</option>
+              <option value="price-low-high">Price: Low to High</option>
+              <option value="price-high-low">Price: High to Low</option>
+              <option value="newest">Newest First</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mr-2">Show:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => onItemsPerPageChange(parseInt(e.target.value))}
+              className="p-2 border rounded"
+            >
+              <option value={12}>12 per page</option>
+              <option value={24}>24 per page</option>
+              <option value={48}>48 per page</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="text-sm text-gray-600">
+          Showing {startIndex + 1}-{endIndex} of {totalItems} products
+        </div>
+      </div>
+    );
+  };
+
+  // Product Grid Component
+  const ProductGrid = ({ books }) => {
+    if (!books || books.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {books.map((book) => (
+          <div key={book.id} className="border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+            <div className="p-4">
+              <h3 className="font-bold text-lg mb-2 line-clamp-2">{book.title}</h3>
+              <div className="space-y-1 mb-3">
+                <p className="text-2xl font-bold text-red-600">${book.price.toFixed(2)}</p>
+                <p className="text-sm text-gray-600">{book.brand}</p>
+                <p className="text-sm text-gray-500">{book.productType}</p>
+              </div>
+              
+              <div className="flex items-center justify-between mb-3">
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  book.availability === 'In Stock' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {book.availability}
+                </span>
+                {book.color && (
+                  <span className="text-xs text-gray-500">{book.color}</span>
+                )}
+              </div>
+
+              <button className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition-colors">
+                {book.availability === 'In Stock' ? 'Add to Cart' : 'Pre-order'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
        <div className="min-h-screen flex flex-col bg-white">
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading Books...</p>
+            <p className="text-gray-600">Loading Products...</p>
           </div>
         </main>
       </div>
@@ -192,25 +314,6 @@ export function Homepage() {
       </div>
     )
   }
-
-  // NOTE: Placeholder components for rendering.
-  const FilterSidebar = ({ filters, filterOptions, onFilterChange }) => <div>Filter Sidebar Placeholder</div>;
-  const SortControls = ({ onSortChange }) => <div>Sort Controls Placeholder</div>;
-  const ProductGrid = ({ books }) => {
-      if (!books || books.length === 0) return <p>No books to display.</p>;
-
-      return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {books.map((book) => (
-            <div key={book.id} className="border p-4 rounded-lg shadow">
-                <h3 className="font-bold">{book.title}</h3>
-                <p>${book.price.toFixed(2)}</p>
-                <p className="text-sm text-gray-500">{book.brand}</p>
-            </div>
-          ))}
-        </div>
-      );
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

@@ -42,4 +42,4 @@ const ProductGrid = ({ books, loading = false}) => {
         </div>
     );
 }
-export default ProductGrid;
+export default ProductGrid; 
