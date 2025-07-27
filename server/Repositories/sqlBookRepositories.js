@@ -40,6 +40,8 @@ export async function getAllBook( option ={} ) {
     const offset=(pages-1)*limit;
     const sortBy =option.sortBy || 'create_at';
     const sortOrder=option.sortOrder || 'desc';
+    // const whereClauses = [];
+    const whereClauses = [];
 
     const queryOptions={
         where:{},
@@ -53,12 +55,31 @@ export async function getAllBook( option ={} ) {
         order: [],
         distinct:true,// Important for when filtering on many-to-many includes
     };
-    const whereClauses = [];
 
 // Category filter
-if (option.categoryId) {
-  whereClauses.push({ category_id: option.categoryId });
-}
+    if (option.id) {
+      whereClauses.push({ id: option.id });
+    }
+    if (option.categoryId) {
+      whereClauses.push({ category_id: option.categoryId });
+    }
+        if (option.authorId) {
+      // This is handled by the authors include below, not in whereClauses
+      const authorInclude = queryOptions.include.find(i => i.as === 'authors');
+      if (authorInclude) {
+        authorInclude.where = { id: option.authorId };
+        authorInclude.required = true;
+      }
+    }
+
+    // Tag filter
+    if (option.tagId) {
+      const tagInclude = queryOptions.include.find(i => i.as === 'tags');
+      if (tagInclude) {
+        tagInclude.where = { id: option.tagId };
+        tagInclude.required = true;
+      }
+    }
 
 // Price filter
 const priceFilter = {};
@@ -93,6 +114,7 @@ if (whereClauses.length === 1) {
   queryOptions.where = { [Op.and]: whereClauses };
 } else {
   queryOptions.where = {};
+  // throw new Error("No filters were provided");
 }
 
 console.log("Query options:", queryOptions);

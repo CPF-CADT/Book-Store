@@ -61,3 +61,16 @@ export const fetchUserProfileAdmin = (id, role) => {
   const rolePath = (role === 'vendor' || role === 'admin') ? 'vendor' : 'customer';
   return axiosInstance.get(`/${rolePath}/profile-detail/${id}`);
 };
+export const fetchAllCategories = () => {
+  // Matches GET /categories - Assumes a categoryRoutes file exists
+  // We add a large limit to get all categories, or your backend could have a dedicated endpoint
+  return axiosInstance.get('/category', { params: { limit: 100 } }); 
+};
+export const fetchAllAuthorsForFilter = () => {
+  // Matches GET /authors
+  return axiosInstance.get('/author', { params: { limit: 100 } });
+};
+export const fetchAllTags = () => {
+  // Matches GET /tags
+  return axiosInstance.get('/tag', { params: { limit: 100 } });
+};

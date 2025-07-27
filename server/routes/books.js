@@ -12,7 +12,7 @@ const bookRoutes = Router();
 
 // For anyone 
 bookRoutes.get('/', handleGetAllbooks);
-bookRoutes.get('/:id', getbookdetail);
+bookRoutes.get('/:bookId', getbookdetail);
 
 
 // For vendors and admins

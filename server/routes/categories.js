@@ -3,7 +3,7 @@ import * as categoryController from '../controllers/categoriesController.js';
 import { isAuthenticated, isAuthorized } from "../middleware/authMiddleware.js";
 const categoryRoute= Router();
 
-categoryRoute.get('/category', categoryController.handleGetAllCategories); 
+categoryRoute.get('/', categoryController.handleGetAllCategories); 
 categoryRoute.get('/category/:id', categoryController.handleGetCategoryDetail); 
 // for admin 
 categoryRoute.post(

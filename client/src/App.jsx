@@ -4,11 +4,12 @@ import { UserProfile } from './pages/UserProfile';
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import { Account_detail } from "./pages/account_detail";
-import { HomePageLayout } from "./HomePageLayout";
+import { HomePageLayout } from "./HomePageLayout.jsx";
 import { useAuth } from "./context/AuthContext";
 import { Homepage } from './components/Homepage';
 import { AdminDashboard } from './pages/admindashborad';
 import { NotFound } from './pages/NotFound'; 
+import { BookDetailPage } from './pages/BookDetailPage';
 // import { Homepage } from './components/Homepage';
 // import FilterSideBar from "./components/FilterSideBar";
 class ErrorBoundary extends React.Component {
@@ -51,13 +52,16 @@ function App() {
       <ErrorBoundary>
         <Routes>
           {/* Public routes that use the main layout */}
-          <Route element={<HomePageLayout />}>
-            <Route path="/" element={<Homepage />} />
+          {/* <Route element={<HomePageLayout />}> */}
+             <Route path="/" element={<HomePageLayout />}>
+             <Route index element={<Homepage />} /> 
+              <Route path="book/:id" element={<BookDetailPage />} /> 
           </Route>
           
           {/* Auth routes without the main layout */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          
           
           {/* Protected Routes */}
           <Route
@@ -81,7 +85,7 @@ function App() {
           />
 
           {/* Catch-all 404 Route */}
-          <Route path="*" element={<AdminDashboard />} />
+          <Route path="*" element={< NotFound />} />
         </Routes>
       </ErrorBoundary>
   );

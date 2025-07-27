@@ -29,8 +29,8 @@ export async function getAllTags(options = {}) {
         [
           literal(`(
             SELECT COUNT(*)
-            FROM \`bookTags\`
-            WHERE \`bookTags\`.\`tag_id\` = \`Tags\`.\`id\`
+            FROM \`book_Tags\`
+            WHERE \`book_Tags\`.\`tag_id\` = \`Tags\`.\`id\`
           )`),
           "book_count",
         ],
