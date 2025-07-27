@@ -3,6 +3,7 @@ import { HomeHeader, Footer } from "../components/HeaderFooter"; // Assuming the
 import FilterSideBar from "./FilterSideBar.jsx";
 import ProductGrid from "./ProductGrid.jsx";
 import BookListPage from "./SortControls.jsx";
+import { Filter } from "lucide-react";
 import { 
   fetchAllBooks, 
   fetchAllCategories, 
@@ -18,6 +19,7 @@ export function Homepage() {
     totalPages: 1,
     currentPage: 1,
   });
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     priceRange: { min: '', max: '' },
@@ -153,13 +155,23 @@ const handleFilterChange = useCallback((updater) => {
     <div className="min-h-screen flex flex-col bg-white">
       <HomeHeader />
       <main className="flex-1">
+        
         <div className="flex flex-col lg:flex-row max-w-7xl mx-auto w-full pt-12 pb-8 px-4">
 <FilterSideBar
             filters={filters}
-            filterOptions={dynamicFilterOptions} 
+            filterOptions={dynamicFilterOptions}
             onFilterChange={handleFilterChange}
+            isMobileOpen={isFilterOpen} // Pass the state
+            onMobileClose={() => setIsFilterOpen(false)} // Pass the closing function
           />
           <section className="flex-1 lg:ml-8 mt-8 lg:mt-0">
+             <button
+                onClick={() => setIsFilterOpen(true)}
+                className="lg:hidden flex items-center bg-white border border-gray-300 px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-50"
+              >
+                <Filter size={16} className="mr-2"/>
+                Filters
+              </button>
             {/* Sort Controls would be a component here */}
             <div className="mb-4">
               <select value={sortBy} onChange={(e) => handleSortChange(e.target.value)}>
@@ -213,7 +225,7 @@ const handleFilterChange = useCallback((updater) => {
                     })}
 
                     {/* Next Button */}
-                    <button 
+                     <button 
                       onClick={() => handlePageChange(currentPage + 1)} 
                       // FIX: Consistently use 'currentPage' state for the disabled check
                       disabled={currentPage === pageData.totalPages}

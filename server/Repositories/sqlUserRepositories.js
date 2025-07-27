@@ -6,6 +6,23 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 // Customer Sign-up function
+export async function handleAdminDeleteUser(req, res) {
+  const { id } = req.params;
+  try {
+    const user = await Users.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    // Prevent admin from deleting themselves
+    if (user.id === req.user.id) {
+       return res.status(403).json({ message: "Cannot delete your own account." });
+    }
+    await user.destroy();
+    res.status(200).json({ message: "User deleted successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting user." });
+  }
+};
 export async function signUp(userData,role) {
   const { email, password, first_name, last_name, phone } = userData;
 

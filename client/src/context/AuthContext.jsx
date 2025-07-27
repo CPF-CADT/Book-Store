@@ -87,7 +87,7 @@ export function AuthProvider({ children }) {
             // Perform role-based redirection after successful login.
             const { role, id } = userData;
             if (role === 'admin' || role === 'vendor') {
-                navigate(`/${role}/${id}/dashboard`);
+                navigate(`/dashboard`);
             } else if (role === 'customer') {
                 navigate(`/${role}/${id}/profile`);
             } else {
