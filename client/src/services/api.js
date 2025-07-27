@@ -1,5 +1,6 @@
+//service/api.js
 import axios from 'axios';
-const API_URL = 'http://localhost:3001/api';
+const API_URL = 'http://localhost:3000/api';
 const api = axios.create({ baseURL: API_URL });
 
 export const fetchFilters = async () => {

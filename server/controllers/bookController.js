@@ -1,4 +1,4 @@
-// server/controllers/bookControllers.js
+// server/controllers/bookController.js
 import { Op } from 'sequelize';
 import { Books, authors, publishers } from '../module/associations.js';
 
