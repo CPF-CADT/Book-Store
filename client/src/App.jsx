@@ -71,6 +71,7 @@ function App() {
             <Route path="blog" element={<BlogListPage />} />
             <Route path="blog/:slug" element={<BlogDetailPage />} />
             <Route path="book/:id" element={<BookDetailPage />} /> 
+              <Route path="profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           </Route>
 
           {/* ===== 2. AUTH ROUTES (standalone) ===== */}

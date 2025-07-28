@@ -29,7 +29,7 @@ function ProfileField({ label, value, isVerified = null }) {
 // Main User Profile Page Component
 export function UserProfile() {
   const { user, setUser } = useAuth();
-  const { id } = useParams();
+  const id = user.id;
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -73,35 +73,39 @@ export function UserProfile() {
   };
 
   const handleSubmit = async (e) => {
+    // 1. Prevent the default form action first
     e.preventDefault();
+    
+    // 2. Clear any previous messages
     setMessage({ type: "", text: "" });
 
-    // Frontend validation
+    // 3. Perform validation
     if (formData.password && formData.password !== formData.confirmPassword) {
       setMessage({ type: "error", text: "Passwords do not match." });
-      return;
+      return; // Stop execution
     }
-
+    
+    // 4. Set loading state
     setIsLoading(true);
 
-    // Construct the payload to send to the API
+    // 5. Construct the payload *before* you use it
     const payload = {
       first_name: formData.first_name,
       last_name: formData.last_name,
       phone: formData.phone,
+      password: formData.password
     };
-    // Only include the password if the user typed one
     if (formData.password) {
-      // Your backend should expect `password` or `password_hash`
       payload.password = formData.password; 
     }
 
+    // 6. Make the API call inside a try...catch block
     try {
-      const response = await updateUserProfile(payload);
-      // Update the global user state with the fresh data from the server
+      const response = await updateUserProfile(id,'customer',payload);
+      
       setUser(prevUser => ({ ...prevUser, ...response.data })); 
       setMessage({ type: "success", text: "Profile updated successfully!" });
-      setIsEditing(false); // Switch back to view mode
+      setIsEditing(false);
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Failed to update profile.";
       setMessage({ type: "error", text: errorMsg });

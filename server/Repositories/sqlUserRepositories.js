@@ -148,7 +148,7 @@ export async function getUserProfileDetail(id) {
 }
 
 // Update user profile
-export async function updateProfile(id, userData) {
+export async function updateProfile(id, userData={}) {
   const { password, first_name, last_name, phone } = userData;
 
   try {
@@ -187,6 +187,7 @@ export async function updateProfile(id, userData) {
     const updatedUser = await Users.findByPk(id, {
       attributes: { exclude: ["password_hash"] },
     });
+    console.log(userData);
 
     return updatedUser.toJSON();
   } catch (error) {
