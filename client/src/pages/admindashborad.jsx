@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaDollarSign, FaShoppingCart, FaUsers, FaBook } from 'react-icons/fa';
-
+import { Link } from 'react-router-dom';
 import { StatCard } from '../components/admin/StatCard';
 import { SalesChart } from '../components/admin/SalesChart';
 import { RecentOrdersTable } from '../components/admin/RecentOrdersTable';
+import { fetchUserCount } from '../services/api';
 // Assume your API service is set up
 // import { getDashboardStats, getSalesReport, getRecentOrders } from '../services/api';
 
@@ -49,7 +50,8 @@ export function AdminDashboard() {
         // const salesPromise = getSalesReport();
         // const ordersPromise = getRecentOrders();
         // const [statsRes, salesRes, ordersRes] = await Promise.all([statsPromise, salesPromise, ordersPromise]);
-
+        const newUsers = await fetchUserCount();
+        mockStats.newUsers = newUsers.data.totalUsers;
         // Using mock data for this example
         setStats(mockStats);
         setSalesData(mockSalesData);
@@ -70,13 +72,21 @@ export function AdminDashboard() {
 
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
+ <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+          <Link 
+            to="/" 
+            className="/* styles */"
+          >
+            View Live Site
+          </Link>
+      </div>
 
       {/* Stat Cards Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Sales"
-          value={`$${stats.totalSales.toLocaleString()}`}
+          value={`${stats.totalSales.toLocaleString()}`}
           icon={<FaDollarSign size={24} />}
           colorClass="bg-green-500"
         />

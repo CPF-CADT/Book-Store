@@ -19,6 +19,9 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+export const fetchUserCount = () => {
+  return axiosInstance.get("/admin/users-count");
+};
 export const registerUser = (userData) => {
   return axiosInstance.post("/user/sign-up", userData);
 };

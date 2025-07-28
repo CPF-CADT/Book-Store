@@ -34,25 +34,24 @@ export async function login(req, res) {
   }
 }
 
-// Corrected Controller
+
 export async function getUserProfileDetail(req, res) {
   try {
-    // Call the repository. If it succeeds, 'user' will be a valid object.
+
     const user = await userRespositories.getUserProfileDetail(req.params.id);
 
-    // If the line above didn't throw an error, we know we found the user.
+
     res.status(200).json(user);
 
   } catch (err) {
-    // Now, we inspect the error inside the catch block.
-    console.error("Error fetching user profile:", err.message); // More accurate log
 
-    // Check if it's the specific "not found" error from our repository.
+    console.error("Error fetching user profile:", err.message); 
+
+
     if (err.message === "User not found") {
-      // Send a 404 Not Found response.
+
       res.status(404).json({ message: err.message });
     } else {
-      // For all other unexpected errors, send a 500 Server Error.
       res.status(500).json({ message: "An unexpected error occurred on the server." });
     }
   }
@@ -93,7 +92,7 @@ export async function handleGetAllUsers(req, res) {
       limit,
       offset,
       order: [['created_at', 'DESC']],
-      attributes: { exclude: ['password_hash'] }, // Never send password hashes
+      attributes: { exclude: ['password_hash'] }, 
     });
 
     res.status(200).json({
@@ -126,5 +125,15 @@ export async function handleAdminCreateUser(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error creating user." });
+  }
+}
+
+export async function countAllUsers(req, res) {
+  try {
+    const count = await Users.count();
+    res.status(200).json({ totalUsers: count });
+  } catch (error) {
+    console.error("Error counting users:", error);
+    res.status(500).json({ message: "Error counting users." });
   }
 }

@@ -14,9 +14,9 @@ export async function handleAdminDeleteUser(req, res) {
       return res.status(404).json({ message: "User not found." });
     }
     // Prevent admin from deleting themselves
-    if (user.id === req.user.id) {
-       return res.status(403).json({ message: "Cannot delete your own account." });
-    }
+    // if (user.id === req.user.id) {
+    //    return res.status(403).json({ message: "Cannot delete your own account." });
+    // }
     await user.destroy();
     res.status(200).json({ message: "User deleted successfully." });
   } catch (error) {
@@ -148,7 +148,7 @@ export async function getUserProfileDetail(id) {
 }
 
 // Update user profile
-export async function updateProfile(id, userData) {
+export async function updateProfile(id, userData={}) {
   const { password, first_name, last_name, phone } = userData;
 
   try {
@@ -187,6 +187,7 @@ export async function updateProfile(id, userData) {
     const updatedUser = await Users.findByPk(id, {
       attributes: { exclude: ["password_hash"] },
     });
+    console.log(userData);
 
     return updatedUser.toJSON();
   } catch (error) {
