@@ -114,9 +114,11 @@ export function AdminUsersPage() {
     try {
       if (currentUser) {
         // Update user (email and password cannot be changed here)
+        console.log(currentUser.id,formData);
         await adminUpdateUser(currentUser.id, formData);
       } else {
         // Create new user (password is required)
+        console.log('not');
         if (!formData.password || formData.password.length < 6) {
           setFormErrors("Password is required and must be at least 6 characters.");
           return;

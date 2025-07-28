@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { StatCard } from '../components/admin/StatCard';
 import { SalesChart } from '../components/admin/SalesChart';
 import { RecentOrdersTable } from '../components/admin/RecentOrdersTable';
+import { fetchUserCount } from '../services/api';
 // Assume your API service is set up
 // import { getDashboardStats, getSalesReport, getRecentOrders } from '../services/api';
 
@@ -49,7 +50,8 @@ export function AdminDashboard() {
         // const salesPromise = getSalesReport();
         // const ordersPromise = getRecentOrders();
         // const [statsRes, salesRes, ordersRes] = await Promise.all([statsPromise, salesPromise, ordersPromise]);
-
+        const newUsers = await fetchUserCount();
+        mockStats.newUsers = newUsers.data.totalUsers;
         // Using mock data for this example
         setStats(mockStats);
         setSalesData(mockSalesData);
@@ -84,7 +86,7 @@ export function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Sales"
-          value={`$${stats.totalSales.toLocaleString()}`}
+          value={`${stats.totalSales.toLocaleString()}`}
           icon={<FaDollarSign size={24} />}
           colorClass="bg-green-500"
         />

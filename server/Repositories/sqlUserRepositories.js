@@ -14,9 +14,9 @@ export async function handleAdminDeleteUser(req, res) {
       return res.status(404).json({ message: "User not found." });
     }
     // Prevent admin from deleting themselves
-    if (user.id === req.user.id) {
-       return res.status(403).json({ message: "Cannot delete your own account." });
-    }
+    // if (user.id === req.user.id) {
+    //    return res.status(403).json({ message: "Cannot delete your own account." });
+    // }
     await user.destroy();
     res.status(200).json({ message: "User deleted successfully." });
   } catch (error) {

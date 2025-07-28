@@ -6,6 +6,7 @@ import {
   VendorSignUp,
   handleGetAllUsers,
   handleAdminCreateUser,
+  countAllUsers,
   
 } from "../controllers/userControllers.js";
 import { handleAdminDeleteUser } from "../Repositories/sqlUserRepositories.js";
@@ -24,9 +25,10 @@ vendor.put("/profile-detail/:id", Updateprofile);
 vendor.post("/sign-up", VendorSignUp);
 vendor.post("/login", login);
 
+vendor.get('/users-count', countAllUsers);
 vendor.get('/users', handleGetAllUsers);
 vendor.post('/users', handleAdminCreateUser);
-vendor.put('/users/:id', getUserProfileDetail);
+vendor.put('/users/:id', Updateprofile);
 vendor.delete('/users/:id', handleAdminDeleteUser);
 // book
 // vendor.get("/:userId/book/:bookId", bookControllers.getbookdetail);
